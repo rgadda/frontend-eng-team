@@ -29,8 +29,50 @@ PHASE 1: ARCHITECT OUTPUT
 ===============================
 ```
 
-Do not proceed to Phase 2 until the plan is complete and has all required sections
+Do not proceed past this phase until the plan is complete and has all required sections
 (Summary, Files to read, Implementation steps, Constraints, Risks, Open questions).
+
+After printing the plan, **STOP**. Do not begin Phase 2 yet. Go to the approval gate below.
+
+---
+
+## Approval Gate — HUMAN REVIEW REQUIRED
+
+This is a hard stop. The Architect's plan must be reviewed and explicitly approved by
+the user before any code is written.
+
+After printing the Phase 1 output, print exactly this prompt and then wait for the
+user's next message:
+
+```
+===============================
+APPROVAL GATE — awaiting human review
+===============================
+The Architect plan above is ready for your review.
+
+Reply with one of:
+  - "approve" / "lgtm" / "go" / "proceed"  → Phase 2 (Implementer) will begin
+  - any feedback or revision request        → I will revise the plan and re-prompt for approval
+  - "abort" / "stop" / "cancel"             → pipeline ends here, no code written
+```
+
+Rules for the orchestrator at this gate:
+- Do **not** call any file-modifying tool (Write, Edit, NotebookEdit) until the user
+  has affirmatively approved. Read-only tools are still allowed if you need to clarify
+  something for the user.
+- If the user replies with feedback or change requests, treat it as Phase 1 work:
+  revise the plan, re-print the full Phase 1 output with the revisions, and re-prompt
+  with this gate. Do **not** proceed to Phase 2 on partial agreement.
+- Only the explicit affirmatives ("approve", "lgtm", "go", "proceed", or equivalent
+  unambiguous approval) unlock Phase 2. Silence, "looks reasonable", or "I think so"
+  are not approval — re-prompt for an explicit answer.
+- If the user replies "abort" / "stop" / "cancel", end the pipeline cleanly and print:
+  ```
+  PIPELINE ABORTED
+  No code was written. Re-run /pipeline to start over.
+  ```
+
+Only after the user has explicitly approved the plan, proceed to Phase 2.
 
 ---
 
