@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npx vitest *)",
+      "Bash(unset GITHUB_TOKEN)",
+      "Bash(npx tsx *)",
+      "Bash(echo \"exit=$?\")"
+    ]
+  }
+}
