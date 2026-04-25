@@ -88,6 +88,91 @@ This template is configured for a frontend team using:
 
 ---
 
+## GitHub PR Metrics Script
+
+`scripts/collect-pr-metrics.ts` is a CLI that collects merged-PR data from a GitHub repo,
+splits it into a baseline and comparison window, and emits a velocity / size / review
+report. It feeds the measurement workflow described in `metrics-collection.md` and
+`pr-tracking.md` — run it weekly during a consulting engagement to produce the
+before/after numbers for the metrics report.
+
+### Setup
+
+1. Install dependencies (one-time): `npm install`
+2. Create a GitHub personal access token with the `repo` scope:
+   https://github.com/settings/tokens
+3. Export it: `export GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx`
+   (or pass `--token` on every invocation)
+
+### Usage
+
+```bash
+# Default: last 28 days, first 14 = baseline, last 14 = comparison, stdout report
+npx tsx scripts/collect-pr-metrics.ts --repo acme/web-app
+
+# Or via the npm script
+npm run pr-metrics -- --repo acme/web-app
+
+# Custom windows
+npx tsx scripts/collect-pr-metrics.ts --repo acme/web-app --days 42 --baseline-days 21
+
+# Machine-readable JSON for dashboards
+npx tsx scripts/collect-pr-metrics.ts --repo acme/web-app --output json > metrics.json
+
+# Per-PR CSV for spreadsheet analysis
+npx tsx scripts/collect-pr-metrics.ts --repo acme/web-app --output csv > prs.csv
+```
+
+### Flags
+
+| Flag | Required | Default | Description |
+|---|---|---|---|
+| `--repo` | yes | — | GitHub repo in `owner/repo` format |
+| `--days` | no | `28` | Total days to look back |
+| `--baseline-days` | no | `14` | Days within `--days` treated as the baseline (must be `< --days`) |
+| `--output` | no | `stdout` | One of `stdout`, `json`, `csv` |
+| `--token` | no | `$GITHUB_TOKEN` | GitHub PAT with `repo` scope |
+
+### Exit codes
+
+`0` on success, `1` on any error. Failure modes are reported to stderr with remediation
+text: invalid repo format, missing/expired token (401), repo not found (404), rate
+limit hit (with reset time), or network error.
+
+### Tests
+
+Co-located vitest tests live alongside the modules they cover:
+
+```bash
+npx vitest run scripts/lib/
+```
+
+(Includes pure-function tests for the metrics calculator and snapshot-free assertions
+for the CSV and stdout formatters. The GitHub client is exercised end-to-end via the
+script; tests use fixture data and never call the live API.)
+
+### File layout
+
+```
+scripts/
+  collect-pr-metrics.ts        <- CLI entry point
+  tsconfig.json                <- Node-targeted TS config (separate from the app)
+  lib/
+    github-client.ts           <- Octokit wrapper, paginated fetch, typed errors
+    metrics-calculator.ts      <- Pure: median, percentile, period & change metrics
+    metrics-calculator.test.ts
+    types.ts                   <- RawPR, PeriodMetrics, ChangeMetrics, ReportData…
+    __fixtures__/sample-prs.ts <- Deterministic fixture data for tests
+    formatters/
+      stdout-formatter.ts      <- Human-readable report
+      stdout-formatter.test.ts
+      json-formatter.ts        <- Machine-readable JSON
+      csv-formatter.ts         <- RFC 4180-escaped per-PR rows
+      csv-formatter.test.ts
+```
+
+---
+
 ## Adapting This Template
 
 This is a generic frontend team template. To adapt it for your project:
