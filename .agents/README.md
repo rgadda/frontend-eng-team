@@ -12,7 +12,7 @@ This folder contains the canonical role definitions for the multi-agent developm
 - **[architect.md](./roles/architect.md)** — Architect role: decompose tasks into structured plans
 - **[implementer.md](./roles/implementer.md)** — Implementer role: execute plans with precision
 - **[reviewer.md](./roles/reviewer.md)** — Reviewer role: provide structured, actionable feedback
-- **[verifier.md](./roles/verifier.md)** — Verifier role: quality gate with 19-point checklist
+- **[verifier.md](./roles/verifier.md)** — Verifier role: quality gate with 20-point checklist
 - **[pipeline.md](./pipeline.md)** — Pipeline orchestrator: runs all four roles in sequence
 
 ---

@@ -30,6 +30,8 @@ Instructions:
 - Read CLAUDE.md to understand project constraints
 - Read all relevant files before planning
 - Produce the full structured plan output
+- Include the phase budget — estimated LOC and file count. If >300 LOC or >5 files, decompose
+  into phases and produce a plan for Phase 1 only
 - Include failure modes and handling patterns for every data flow
 - If the task touches styling, state management, or dependencies, include constraints on each
 
@@ -41,7 +43,7 @@ PHASE 1: ARCHITECT OUTPUT
 ```
 
 Do not proceed past this phase until the plan is complete and has all required sections
-(Summary, Files to read, Implementation steps, Constraints, Risks, Open questions).
+(Summary, Phase budget, Files to read, Implementation steps, Constraints, Risks, Open questions).
 
 After printing the plan, **STOP**. Do not begin Phase 2 yet. Go to the approval gate below.
 
@@ -135,7 +137,7 @@ Activate the Verifier role from `.agents/roles/verifier.md`.
 
 Instructions:
 - Check all three artifacts: Phase 1 plan, Phase 2 implementation, Phase 3 review
-- Run the full 19-item checklist across all four categories (Pipeline, Accessibility, Performance, Readiness)
+- Run the full 20-item checklist across all four categories (Pipeline, Accessibility, Performance, Readiness)
 - Cite specific evidence for every PASS/FAIL — file name, function, line
 - Produce Gate: PASS or FAIL with full evidence
 
@@ -166,6 +168,6 @@ Loop limit reached. Human intervention required.
 If Phase 4 Gate is **PASS**:
 ```
 PIPELINE COMPLETE
-All 19 checks passed. Ready for human review.
+All 20 checks passed. Ready for human review.
 Summary of changes: [one paragraph]
 ```

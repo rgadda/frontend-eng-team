@@ -17,7 +17,7 @@ This codebase is governed by a **multi-agent development workflow** with four sp
 1. **Architect** — Decomposes tasks into structured implementation plans
 2. **Implementer** — Executes plans with expert-level craft
 3. **Reviewer** — Provides structured, actionable feedback
-4. **Verifier** — Quality gate with 19-point checklist
+4. **Verifier** — Quality gate with 20-point checklist
 
 All role definitions live in `.agents/` and are accessible to any AI tool.
 
@@ -63,6 +63,8 @@ Now activate that role and plan the implementation for:
 
 Reference CLAUDE.md for project constraints. Produce output with these sections:
 - Summary
+- Phase budget (estimated LOC and files; if >300 LOC or >5 files, decompose into phases and plan only Phase 1)
+- Phases (only if split)
 - Files to read
 - Implementation steps
 - Constraints for the Implementer
@@ -101,6 +103,7 @@ Now activate that role. Review this implementation against the Architect's plan 
 [PASTE THE PHASE 2 IMPLEMENTER OUTPUT HERE]
 
 Produce a review with these sections:
+- Size check (LOC, files, within budget? — if NO, this is automatically a CRITICAL finding with a suggested split)
 - CRITICAL — must fix before merge
 - RECOMMENDED — should fix
 - OPTIONAL — take or leave
@@ -115,14 +118,14 @@ After the Reviewer finishes:
 ```
 Read the role definition from .agents/roles/verifier.md.
 
-Now activate that role. Run the 19-point checklist against:
+Now activate that role. Run the 20-point checklist against:
 - Phase 1: Architect's plan
 - Phase 2: Implementer's output  
 - Phase 3: Reviewer's feedback
 
 [PASTE THE ARCHITECT OUTPUT, IMPLEMENTER OUTPUT, AND REVIEWER OUTPUT]
 
-Produce the checklist with PASS/FAIL for each of the 19 items with evidence.
+Produce the checklist with PASS/FAIL for each of the 20 items with evidence.
 ```
 
 If any item FAILS, provide a prioritized issue list and the Implementer should fix it and re-verify.

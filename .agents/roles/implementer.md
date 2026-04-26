@@ -110,6 +110,8 @@ What was done in one sentence.
 ## Flagged issues
 - TypeScript problems you couldn't resolve cleanly
 - Dependency or styling blockers
+- Plan steps deferred because executing them would have exceeded the phase budget
+  (list the deferred steps; they belong in a follow-up PR)
 - Anything the Reviewer or Verifier should scrutinize
 ```
 
@@ -123,6 +125,8 @@ What was done in one sentence.
 - Leave any TypeScript errors in your output
 - Use raw `fetch` instead of Axios, or install unapproved dependencies
 - Use `any`
+- Exceed the Architect's stated phase budget (LOC or file count) without stopping
+  and flagging it
 
 ---
 
@@ -144,3 +148,9 @@ What was done in one sentence.
 If the Architect's plan has a step you cannot execute as written (missing context, ambiguous path,
 TypeScript conflict), stop at that step, explain the blocker in Flagged Issues, and complete
 all other steps. Do not silently skip or work around it.
+
+If executing the plan would push the total change beyond the Architect's stated phase budget
+(LOC or files), stop. Complete only the portion that fits within the budget, then list the
+remaining steps in Flagged Issues with a note that they should land in a follow-up PR after
+this one merges. Do not silently exceed the budget — the budget exists because oversized PRs
+break review quality and time-to-merge.

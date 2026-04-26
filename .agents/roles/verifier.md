@@ -127,24 +127,25 @@ file-anchored, and actionable.
 5. **Critical review items** — is every CRITICAL from the Reviewer addressed?
 6. **Constraint violations** — did the Implementer do anything the Architect explicitly forbade?
 7. **File structure** — are new files in the right location per CLAUDE.md?
+8. **PR size compliance** — does the diff fit the Architect's phase budget (≤300 LOC, ≤5 files unless the Architect explicitly authorized a higher budget with stated rationale)? Cite actual LOC and file count from the diff.
 
 ### Accessibility
-8. **Keyboard access** — can all new interactive elements be reached and operated via keyboard?
-9. **Semantic HTML** — are buttons, links, nav, dialog used instead of generic divs with handlers?
-10. **Labels and names** — do form inputs, buttons, and interactive elements have accessible names?
-11. **Focus management** — do modals trap focus, return focus on close, and handle Escape?
-12. **Dynamic announcements** — do loading/error/status changes announce to screen readers?
+9. **Keyboard access** — can all new interactive elements be reached and operated via keyboard?
+10. **Semantic HTML** — are buttons, links, nav, dialog used instead of generic divs with handlers?
+11. **Labels and names** — do form inputs, buttons, and interactive elements have accessible names?
+12. **Focus management** — do modals trap focus, return focus on close, and handle Escape?
+13. **Dynamic announcements** — do loading/error/status changes announce to screen readers?
 
 ### Performance
-13. **Bundle impact** — are new dependencies justified? Are dynamic imports used where appropriate?
-14. **Render efficiency** — no unnecessary re-renders from unrelated context or missing memoization on proven hot paths?
-15. **Asset optimization** — images have dimensions, lazy loading applied, animations use compositor properties?
-16. **Motion respect** — does new animation/transition respect prefers-reduced-motion?
+14. **Bundle impact** — are new dependencies justified? Are dynamic imports used where appropriate?
+15. **Render efficiency** — no unnecessary re-renders from unrelated context or missing memoization on proven hot paths?
+16. **Asset optimization** — images have dimensions, lazy loading applied, animations use compositor properties?
+17. **Motion respect** — does new animation/transition respect prefers-reduced-motion?
 
 ### Production Readiness
-17. **Error states** — does the implementation handle API errors, empty data, and loading states?
-18. **Cleanup** — are useEffect cleanups present for listeners, subscriptions, timers, and abort controllers?
-19. **Security** — no dangerouslySetInnerHTML without sanitization, no tokens in localStorage, no secrets in client code?
+18. **Error states** — does the implementation handle API errors, empty data, and loading states?
+19. **Cleanup** — are useEffect cleanups present for listeners, subscriptions, timers, and abort controllers?
+20. **Security** — no dangerouslySetInnerHTML without sanitization, no tokens in localStorage, no secrets in client code?
 
 ---
 
@@ -163,24 +164,25 @@ file-anchored, and actionable.
 5. Critical review items: PASS/FAIL — evidence
 6. Constraint violations: PASS/FAIL — evidence
 7. File structure: PASS/FAIL — evidence
+8. PR size compliance: PASS/FAIL — cite LOC and file count vs. budget
 
 ### Accessibility
-8. Keyboard access: PASS/FAIL — evidence
-9. Semantic HTML: PASS/FAIL — evidence
-10. Labels and names: PASS/FAIL — evidence
-11. Focus management: PASS/FAIL — evidence
-12. Dynamic announcements: PASS/FAIL — evidence
+9. Keyboard access: PASS/FAIL — evidence
+10. Semantic HTML: PASS/FAIL — evidence
+11. Labels and names: PASS/FAIL — evidence
+12. Focus management: PASS/FAIL — evidence
+13. Dynamic announcements: PASS/FAIL — evidence
 
 ### Performance
-13. Bundle impact: PASS/FAIL — evidence
-14. Render efficiency: PASS/FAIL — evidence
-15. Asset optimization: PASS/FAIL — evidence
-16. Motion respect: PASS/FAIL — evidence
+14. Bundle impact: PASS/FAIL — evidence
+15. Render efficiency: PASS/FAIL — evidence
+16. Asset optimization: PASS/FAIL — evidence
+17. Motion respect: PASS/FAIL — evidence
 
 ### Production Readiness
-17. Error states: PASS/FAIL — evidence
-18. Cleanup: PASS/FAIL — evidence
-19. Security: PASS/FAIL — evidence
+18. Error states: PASS/FAIL — evidence
+19. Cleanup: PASS/FAIL — evidence
+20. Security: PASS/FAIL — evidence
 
 ## Issues for Implementer (if FAIL)
 Priority 1 (blocking):

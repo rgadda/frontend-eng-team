@@ -26,7 +26,7 @@ The four roles in the multi-agent pipeline are defined in `.agents/roles/`:
 - **Key traits:** Staff-level review experience, teaching focus
 
 ### [Verifier](./.agents/roles/verifier.md)
-- **Purpose:** Quality gate with a 19-point checklist
+- **Purpose:** Quality gate with a 20-point checklist
 - **Activation:** `/verify` in Claude Code, or load the role file into any other tool
 - **Key traits:** Evidence-based verification, production readiness
 
@@ -40,7 +40,7 @@ The full pipeline is orchestrated in [`.agents/pipeline.md`](./.agents/pipeline.
 2. **Approval gate:** human reviews and explicitly approves the plan
 3. **Phase 2 — Implementer:** executes the approved plan
 4. **Phase 3 — Reviewer:** provides feedback on the implementation
-5. **Phase 4 — Verifier:** runs the 19-item checklist for the final PASS/FAIL gate
+5. **Phase 4 — Verifier:** runs the 20-item checklist for the final PASS/FAIL gate
 6. **Loop:** on FAIL, return to the Implementer with a prioritized issue list
 
 ---
@@ -56,7 +56,7 @@ Slash commands are wired to the canonical definitions:
 /architect [task]  # Architect role only
 /implement         # Execute the Architect's plan
 /review            # Review the Implementer's changes
-/verify            # Run the 19-point quality gate
+/verify            # Run the 20-point quality gate
 ```
 
 Each Claude Code command file in `.claude/commands/` reads the matching `.agents/roles/*.md`
@@ -116,7 +116,7 @@ Task → ARCHITECT (reads files, produces plan)
          ↓ changed files
        REVIEWER (reviews diff, produces structured feedback)
          ↓ review + implementation
-       VERIFIER (runs 19-point checklist against plan + implementation + review)
+       VERIFIER (runs 20-point checklist against plan + implementation + review)
          ↓ PASS → human approves merge
          ↓ FAIL → back to IMPLEMENTER with priority issue list
 ```

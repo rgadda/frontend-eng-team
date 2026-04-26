@@ -208,7 +208,7 @@ For flag reference, output formats, error handling, and test instructions, see
 This is a generic frontend team template. To adapt it for your project:
 
 1. **CLAUDE.md** — Update the tech stack table, styling conventions, and "never do" list to match your project's actual stack and standards.
-2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 19-item checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
+2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 20-item checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
 3. **`.agents/pipeline.md`** — Tweak the orchestration if you want different phase boundaries, a stricter approval gate, or extra loop iterations.
 4. **Tool entry points** — `.claude/commands/*.md` and `.github/copilot-instructions.md` are thin wrappers that delegate to `.agents/`. Edit them only if your Claude Code or Copilot integration changes.
 5. **Test the pipeline** — Run `/pipeline` (or the Copilot paste workflow) on a small, real task from your backlog to validate the setup before team rollout.
@@ -225,6 +225,6 @@ This is a generic frontend team template. To adapt it for your project:
 | `.agents/roles/architect.md` | Tech lead | Architect identity, output-format, or constraint refinements |
 | `.agents/roles/implementer.md` | Tech lead | Implementer identity, output-format, or constraint refinements |
 | `.agents/roles/reviewer.md` | Tech lead | Review rubric and severity-level changes |
-| `.agents/roles/verifier.md` | Tech lead | 19-item checklist or quality-gate changes |
+| `.agents/roles/verifier.md` | Tech lead | 20-item checklist or quality-gate changes |
 | `.claude/commands/*.md` | Tech lead | Claude Code slash-command wiring (only when delegation pattern changes) |
 | `.github/copilot-instructions.md` | Tech lead | Copilot paste-workflow updates (only when role files change shape) |
