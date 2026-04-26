@@ -28,6 +28,19 @@ Instead of treating AI as a single, general-purpose assistant, this framework as
 
 This is the same principle behind any mature engineering process: specialization, separation of concerns, and quality gates. The difference is that AI agents are cheap, fast, and tireless — so you can run the full pipeline on every task, not just the important ones.
 
+### Change-Size Discipline
+
+A pipeline that produces correct code in a 600-line PR has still failed, because reviewer attention degrades non-linearly with PR size — bugs hide in the back half of long diffs, and time-to-merge collapses as PRs grow. This is the failure mode AI assistance most often makes worse: when generating code is cheap, engineers ship larger changes, and review throughput cannot keep up.
+
+The pipeline treats reviewable PR size as a first-class invariant, enforced at every role:
+
+- **Architect** estimates LOC and file count *before* producing the plan. If the work exceeds the budget (≤300 LOC, ≤5 files), the Architect decomposes it into independently shippable phases — each phase becomes its own PR. The plan covers Phase 1 only; subsequent phases get their own pipeline runs.
+- **Implementer** halts when execution would push the change beyond the Architect's budget. The remaining steps go into Flagged Issues for a follow-up PR. Silent budget overruns are a contract violation, not a discretionary choice.
+- **Reviewer** measures size as the first check. A PR over budget is automatically a CRITICAL finding regardless of code quality, with concrete suggested split points (which files land first, which depend on them).
+- **Verifier** has size as a hard checklist item with cited LOC and file count. A budget violation is a FAIL — the gate cannot be opened on quality alone if the diff is unreviewable.
+
+This is why the pipeline produces faster time-to-merge as a *consequence*, not a goal. Smaller PRs review faster. Faster reviews land sooner. Engineers stop waiting on each other. The size discipline is what makes the velocity gains durable rather than borrowed against quality.
+
 ### The Four Roles
 
 #### Architect
@@ -38,6 +51,7 @@ This is the same principle behind any mature engineering process: specialization
 
 **What it produces:**
 - A summary of the change and its rationale
+- A phase budget — estimated LOC and file count, plus phase decomposition if the work exceeds the single-PR budget
 - A list of files to read and why
 - Ordered implementation steps, each tied to a specific file
 - Constraints the Implementer must follow
@@ -46,7 +60,7 @@ This is the same principle behind any mature engineering process: specialization
 - Security constraints when the change touches auth, user input, or sensitive data
 - Risks and open questions
 
-**What it must NOT do:** Write production code. The Architect plans; it does not build.
+**What it must NOT do:** Write production code. Produce a single-phase plan whose estimate exceeds 300 LOC or 5 files without decomposing it into phases. The Architect plans; it does not build, and it does not bundle multiple PRs' worth of work into one.
 
 **How it makes decisions:** The Architect follows a deliberate decision-making framework:
 1. No architecture astronautics — every abstraction must justify its complexity with a concrete current need
@@ -54,6 +68,7 @@ This is the same principle behind any mature engineering process: specialization
 3. Reversibility matters — prefer decisions that are easy to change over ones that are optimal but permanent
 4. Domain first, technology second — understand the business problem before picking patterns
 5. Document decisions, not just designs — the plan captures WHY, so the Implementer can make correct judgment calls at the edges
+6. Size for review, not for ambition — fit the work into a reviewable budget by default; if it doesn't fit, decompose into independently shippable phases
 
 **Why this matters:** Most AI-generated code fails not because the code itself is wrong, but because the *approach* is wrong — wrong abstraction, wrong file, wrong scope. The Architect role forces a planning phase that catches architectural mistakes before any code is written. By including failure modes, security constraints, and dependency justifications in the plan, the Architect prevents classes of bugs that code review alone cannot catch — because by the time code exists, the wrong approach is already baked in.
 
@@ -70,7 +85,7 @@ This is the same principle behind any mature engineering process: specialization
 - Assumptions made beyond the plan
 - Flagged issues (type errors, dependency blockers, accessibility gaps, ambiguities)
 
-**What it must NOT do:** Refactor outside scope, rename things not in the plan, skip tests, make design decisions, use raw `fetch` instead of the shared HTTP client, or install unapproved dependencies. The Implementer is a craftsperson executing a spec, not a creative.
+**What it must NOT do:** Refactor outside scope, rename things not in the plan, skip tests, make design decisions, use raw `fetch` instead of the shared HTTP client, install unapproved dependencies, or silently exceed the Architect's phase budget. The Implementer is a craftsperson executing a spec, not a creative — and when the spec's budget is reached, the remaining work is deferred to a follow-up PR rather than absorbed into the current one.
 
 **Why this matters:** Unconstrained AI implementations are the primary source of AI drift. The Implementer role eliminates "helpful" refactors, unsanctioned pattern changes, and scope creep. But discipline alone is not enough — the Implementer must also be genuinely skilled. An agent that follows the plan but writes inaccessible components, leaks event listeners, or ignores error states produces code that passes review but fails in production. The Implementer's depth in performance, accessibility, and production readiness is what makes the pipeline output production-grade, not just plan-compliant.
 
@@ -81,6 +96,7 @@ This is the same principle behind any mature engineering process: specialization
 **What it does:** Reviews like a mentor, not a gatekeeper. The Reviewer assesses the implementation across five dimensions — correctness, security, accessibility, performance, and maintainability — and delivers complete, actionable feedback in a single pass. Every comment teaches the Implementer something: why a pattern is dangerous, why an alternative is stronger, why a seemingly fine approach will break under real-world conditions.
 
 **What it checks specifically:**
+- **Size:** Lines changed and files touched against the Architect's budget — a PR over budget is automatically a CRITICAL finding with concrete suggested split points, regardless of code quality
 - **Security:** Unsanitized user input, insecure token storage, missing auth checks, `dangerouslySetInnerHTML` without sanitization
 - **Accessibility:** Keyboard access, semantic HTML, labels on interactive elements, focus management
 - **Performance:** Bundle impact, unnecessary re-renders, missing lazy loading — flagged only when the re-render path or bundle cost is real, not cargo-cult `memo` on everything
@@ -88,7 +104,8 @@ This is the same principle behind any mature engineering process: specialization
 - **Maintainability:** Code that needs the Architect's plan to understand, naming that lies, coupling that will cause pain in 6 months
 
 **What it produces:**
-- CRITICAL issues (must fix — bugs, type errors, security vulnerabilities, convention violations)
+- A size check — LOC changed, files changed, within-budget verdict, and suggested split points if the PR exceeds the budget
+- CRITICAL issues (must fix — bugs, type errors, security vulnerabilities, convention violations, size-budget violations)
 - RECOMMENDED issues (should fix — accessibility gaps, missing error handling, incomplete tests, performance concerns)
 - OPTIONAL issues (take or leave — minor improvements, alternative approaches)
 - Positives (patterns done well that the team should repeat)
@@ -104,13 +121,13 @@ This is the same principle behind any mature engineering process: specialization
 
 **When it activates:** After the Reviewer produces feedback.
 
-**What it does:** Runs a 19-item binary checklist against all three prior artifacts — the plan, the implementation, and the review. The Verifier defaults to FAIL and requires overwhelming evidence for PASS. It cannot be charmed, persuaded, or talked into passing. It does not trust prior agents' outputs at face value — if the Reviewer said "APPROVE," the Verifier still runs the full checklist independently. "Looks fine" is never evidence; evidence is a file name, function name, line number, and specific observable behavior.
+**What it does:** Runs a 20-item binary checklist against all three prior artifacts — the plan, the implementation, and the review. The Verifier defaults to FAIL and requires overwhelming evidence for PASS. It cannot be charmed, persuaded, or talked into passing. It does not trust prior agents' outputs at face value — if the Reviewer said "APPROVE," the Verifier still runs the full checklist independently. "Looks fine" is never evidence; evidence is a file name, function name, line number, and specific observable behavior.
 
 **What it produces:**
 - A PASS/FAIL gate
-- A 19-item checklist across four categories, each with cited evidence:
+- A 20-item checklist across four categories, each with cited evidence:
 
-  **Pipeline Compliance (items 1-7):**
+  **Pipeline Compliance (items 1-8):**
   1. Plan coverage — does every Architect step have a corresponding code change?
   2. TypeScript compliance — any `any`, untyped exports, or type errors?
   3. Convention compliance — raw fetch, inline styles, unapproved dependencies, console.log?
@@ -118,30 +135,31 @@ This is the same principle behind any mature engineering process: specialization
   5. Critical review items — is every CRITICAL from the Reviewer addressed?
   6. Constraint violations — did the Implementer do anything the Architect forbade?
   7. File structure — are new files in the right location per project conventions?
+  8. PR size compliance — does the diff fit the Architect's phase budget (≤300 LOC, ≤5 files unless explicitly authorized with rationale)? Cite actual LOC and file count.
 
-  **Accessibility (items 8-12):**
-  8. Keyboard access — can all new interactive elements be reached and operated via keyboard?
-  9. Semantic HTML — are buttons, links, nav, dialog used instead of generic divs with handlers?
-  10. Labels and names — do form inputs, buttons, and interactive elements have accessible names?
-  11. Focus management — do modals trap focus, return focus on close, and handle Escape?
-  12. Dynamic announcements — do loading/error/status changes announce to screen readers?
+  **Accessibility (items 9-13):**
+  9. Keyboard access — can all new interactive elements be reached and operated via keyboard?
+  10. Semantic HTML — are buttons, links, nav, dialog used instead of generic divs with handlers?
+  11. Labels and names — do form inputs, buttons, and interactive elements have accessible names?
+  12. Focus management — do modals trap focus, return focus on close, and handle Escape?
+  13. Dynamic announcements — do loading/error/status changes announce to screen readers?
 
-  **Performance (items 13-16):**
-  13. Bundle impact — are new dependencies justified? Are dynamic imports used where appropriate?
-  14. Render efficiency — no unnecessary re-renders from unrelated context or missing memoization on proven hot paths?
-  15. Asset optimization — images have dimensions, lazy loading applied, animations use compositor properties?
-  16. Motion respect — does new animation/transition respect prefers-reduced-motion?
+  **Performance (items 14-17):**
+  14. Bundle impact — are new dependencies justified? Are dynamic imports used where appropriate?
+  15. Render efficiency — no unnecessary re-renders from unrelated context or missing memoization on proven hot paths?
+  16. Asset optimization — images have dimensions, lazy loading applied, animations use compositor properties?
+  17. Motion respect — does new animation/transition respect prefers-reduced-motion?
 
-  **Production Readiness (items 17-19):**
-  17. Error states — does the implementation handle API errors, empty data, and loading states?
-  18. Cleanup — are useEffect cleanups present for listeners, subscriptions, timers, and abort controllers?
-  19. Security — no dangerouslySetInnerHTML without sanitization, no tokens in localStorage, no secrets in client code?
+  **Production Readiness (items 18-20):**
+  18. Error states — does the implementation handle API errors, empty data, and loading states?
+  19. Cleanup — are useEffect cleanups present for listeners, subscriptions, timers, and abort controllers?
+  20. Security — no dangerouslySetInnerHTML without sanitization, no tokens in localStorage, no secrets in client code?
 
 - On FAIL: a three-tier prioritized issue list for the Implementer (Priority 1: blocking, Priority 2: fix before re-verify, Priority 3: fix if time permits)
 
 **What it must NOT do:** Produce a PASS if any item fails. Add new issues beyond the checklist (that's the Reviewer's job). Give partial credit — each check is binary.
 
-**Why this matters:** The Verifier is what separates this system from "AI with guardrails" and makes it a genuine quality engineering pipeline. Most AI workflows check whether code compiles and tests pass — this one checks whether the code is accessible, performant, secure, and production-ready. The 19-item checklist catches what conversational code review misses: the button that's unreachable by keyboard, the animation that ignores motion preferences, the subscription that leaks after unmount, the error state that was never implemented. A false PASS is the worst output the pipeline can produce — it ships broken code to real users.
+**Why this matters:** The Verifier is what separates this system from "AI with guardrails" and makes it a genuine quality engineering pipeline. Most AI workflows check whether code compiles and tests pass — this one checks whether the code is accessible, performant, secure, reviewable, and production-ready. The 20-item checklist catches what conversational code review misses: the button that's unreachable by keyboard, the animation that ignores motion preferences, the subscription that leaks after unmount, the error state that was never implemented, the 600-line PR that no human will review carefully. A false PASS is the worst output the pipeline can produce — it ships broken code to real users.
 
 ### The Pipeline
 
@@ -158,7 +176,7 @@ IMPLEMENTER ---> executes plan with craft: accessible, performant,
 REVIEWER  ---> one-pass review across security, accessibility,
   |             performance, maintainability — fully actionable feedback
   v
-VERIFIER  ---> 19-item checklist across 4 categories with cited evidence
+VERIFIER  ---> 20-item checklist across 4 categories with cited evidence
   |
   +---> PASS ---> ready for human review and merge
   |               (includes accessibility + performance summary)
@@ -171,7 +189,7 @@ VERIFIER  ---> 19-item checklist across 4 categories with cited evidence
 1. The Verifier produces a prioritized issue list (Priority 1, 2, 3)
 2. The Implementer receives Priority 1 and 2 issues as the new spec
 3. The Reviewer re-reviews focused on whether the specific issues were addressed — not a full re-review from scratch
-4. The Verifier runs the full 19-item checklist again — not just the previously failed items
+4. The Verifier runs the full 20-item checklist again — not just the previously failed items
 5. The loop repeats until PASS or 3 iterations. After 3 failures, the pipeline stalls and escalates to a human with the remaining issue list
 
 ### How It's Configured Per Repo
@@ -200,7 +218,7 @@ The commands:
 - `/architect <task>` — activates the Architect with scalability, security, and failure-mode thinking
 - `/implement` — activates the Implementer with craft standards for accessibility, performance, and production readiness
 - `/review` — activates the Reviewer with one-pass, fully-actionable, security-and-accessibility-aware review
-- `/verify` — activates the Verifier with the full 19-item checklist across 4 quality categories
+- `/verify` — activates the Verifier with the full 20-item checklist across 4 quality categories
 - `/pipeline <task>` — orchestrates the full sequence with loop-on-failure and scoped re-review
 
 This per-repo configuration is what makes the system scalable. Each repository can have its own rules, constraints, and conventions — but the pipeline structure remains consistent across the organization. The identity/contract separation also means teams can update an agent's expertise (identity layer) without touching the pipeline mechanics (contract layer), and vice versa.
@@ -343,9 +361,10 @@ The measurement framework has two layers: **quantitative metrics** (what can be 
 | Metric | What It Measures | How to Collect | Baseline Period |
 |---|---|---|---|
 | PRs merged per engineer per week | Raw throughput | Git/GitHub analytics | 2-4 weeks pre-adoption |
-| Time from PR open to merge | Review cycle efficiency | Git/GitHub analytics | 2-4 weeks pre-adoption |
+| Time from PR open to merge (median + P90) | Review cycle efficiency — P90 surfaces the long-tail PRs that block release cuts | Git/GitHub analytics | 2-4 weeks pre-adoption |
 | Time from task assignment to first PR | Planning-to-execution speed | Project management tool | 2-4 weeks pre-adoption |
-| Lines of code per PR (trend) | Whether PRs are getting appropriately sized | Git analytics | 2-4 weeks pre-adoption |
+| Lines of code per PR (median + average) | Whether PRs are getting appropriately sized — track median and average together; divergence signals a few large outliers dragging the average | Git analytics | 2-4 weeks pre-adoption |
+| % of PRs within size budget (≤300 LOC, ≤5 files) | Whether the size discipline is holding — this is the leading indicator for time-to-merge improvements | Git analytics | 2-4 weeks pre-adoption |
 
 #### Quality Metrics
 
