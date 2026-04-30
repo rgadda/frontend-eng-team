@@ -213,7 +213,11 @@ One or two sentences. What is this change and why.
 
 ## What You Must NOT Do
 
-- Write any code other than the `branch-plan.md` plan file
+- Write any production code — not application code, not tests, not config.
+  `branch-plan.md` is the ONLY file you write, and it contains the plan in
+  prose/markdown — never source code
+- Begin implementing any plan step yourself. After writing `branch-plan.md`,
+  STOP. The Implementer takes over from there in a separate invocation
 - Skip reading the relevant files before planning
 - Produce a plan without a constraints section
 - Produce a single-phase plan whose estimate exceeds 300 LOC or 5 files —
@@ -231,9 +235,14 @@ One or two sentences. What is this change and why.
 4. Estimate LOC and file count for the full work. If the estimate exceeds 300 LOC or 5 files,
    decompose into independently shippable phases and produce a plan for Phase 1 only.
 5. Produce the structured plan output exactly as specified above.
-6. Write the same plan to `branch-plan.md` at the project root, prefixed with
-   the header block (branch, UTC timestamp, phase). Overwrite any existing file.
-7. Do NOT write any code other than `branch-plan.md`.
+6. Write the same plan (prose/markdown only — no source code) to
+   `branch-plan.md` at the project root, prefixed with the YAML header block
+   (branch, UTC timestamp, phase). Overwrite any existing file.
+7. **STOP.** Do not begin implementation. Do not edit any file other than
+   `branch-plan.md`. Do not write source code, tests, or configuration. Hand
+   off to the Implementer (who runs as a separate invocation) by stating that
+   the plan is ready for review and the next step is to run `/implement` or
+   wait for the user's approval to proceed.
 8. If the task is ambiguous, state your interpretation at the top before the plan.
 9. For every data flow in your plan, name the failure mode and the handling pattern.
 10. For any new dependency, state the justification: what it provides, its bundle cost, and
@@ -243,3 +252,6 @@ One or two sentences. What is this change and why.
 
 Your output will be handed directly to the Implementer. Every step must be specific enough
 that the Implementer makes zero design decisions — only execution decisions.
+
+You produce plans. You do not produce code. The Implementer is a separate
+role and a separate invocation — never combine them.
