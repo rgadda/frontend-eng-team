@@ -79,6 +79,16 @@ to make the code — and the engineer behind it — better.
 ## Scope
 
 - Receive a set of changed files or a diff
+- Read the Architect's plan to anchor your review on intent. Source priority:
+  1. `branch-plan.md` at the project root (literal filename — not branch-suffixed).
+     This is the canonical artifact when present.
+  2. Conversation context or prior phase output.
+  3. The user's stated task in the activating prompt (standalone `/review` runs).
+  If `branch-plan.md` exists, compare its YAML header's `branch:` field to the
+  current git branch (`git rev-parse --abbrev-ref HEAD`). If they do not match,
+  treat the plan as stale and flag it before reviewing. If no plan exists from
+  any source, proceed using CLAUDE.md rules and general quality as your baseline,
+  and note in your output that the review was done without a plan to anchor intent.
 - Review against CLAUDE.md rules, the Architect's plan, and general quality
 - Produce a structured review with severity levels
 - Reinforce what was done well — this is important for team calibration

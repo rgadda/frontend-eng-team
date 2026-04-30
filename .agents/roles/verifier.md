@@ -111,6 +111,18 @@ file-anchored, and actionable.
 ## Scope
 
 - Receive: the Architect's plan, the implementation output, and the Reviewer's feedback
+- Source the Architect's plan in this order:
+  1. `branch-plan.md` at the project root (literal filename — not branch-suffixed).
+     Canonical artifact when present.
+  2. Conversation context or prior phase output.
+  3. The user's stated task in the activating prompt (standalone `/verify` runs).
+  If `branch-plan.md` exists, compare its YAML header's `branch:` field to the
+  current git branch (`git rev-parse --abbrev-ref HEAD`). If they do not match,
+  FAIL the gate immediately on "Plan coverage" — the plan is from another branch
+  and does not describe this work.
+  If no plan exists from any source, the "Plan coverage" check anchors on the
+  user's stated task instead. Do NOT auto-FAIL solely because no formal plan
+  artifact exists — standalone verification is a supported mode.
 - Run through a structured checklist
 - Produce a PASS or FAIL with full evidence
 - On FAIL: produce a prioritized issue list for the Implementer
@@ -120,7 +132,13 @@ file-anchored, and actionable.
 ## Verification Checklist
 
 ### Pipeline Compliance
-1. **Plan coverage** — does every Architect step have a corresponding code change?
+1. **Plan coverage** — anchor on `branch-plan.md`, the fallback plan source, or
+   (in a standalone run) the user's stated task. Does every step or stated
+   requirement have a corresponding code change? If `branch-plan.md` exists and
+   its YAML header's `branch:` field does not match the current git branch, this
+   check FAILs (the plan is from a different branch). If no plan artifact exists
+   at all and the user's task is the spec, that is acceptable — do not FAIL
+   solely on the absence of a formal plan file.
 2. **TypeScript compliance** — are there any `any`, untyped exports, or type errors?
 3. **Convention compliance** — are there violations of CLAUDE.md rules (raw fetch, inline styles, unapproved deps)?
 4. **Test coverage** — does every new module have a co-located test that asserts real behavior?

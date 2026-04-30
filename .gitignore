@@ -1,0 +1,4 @@
+# Transient working artifact written by the Architect role.
+# Read by Implementer / Reviewer / Verifier on the same branch.
+# Deleted (or used to seed the PR description) once the work is merged.
+branch-plan.md

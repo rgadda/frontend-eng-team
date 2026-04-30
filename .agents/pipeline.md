@@ -30,6 +30,9 @@ Instructions:
 - Read CLAUDE.md to understand project constraints
 - Read all relevant files before planning
 - Produce the full structured plan output
+- Write the same plan to `branch-plan.md` at the project root (per the Architect role
+  contract) so subsequent phases — and any teammate using a different tool on this
+  branch — can read it as the canonical artifact
 - Include the phase budget — estimated LOC and file count. If >300 LOC or >5 files, decompose
   into phases and produce a plan for Phase 1 only
 - Include failure modes and handling patterns for every data flow
@@ -171,3 +174,7 @@ PIPELINE COMPLETE
 All 20 checks passed. Ready for human review.
 Summary of changes: [one paragraph]
 ```
+
+After printing the completion message, remind the user that `branch-plan.md` at
+the project root is a good source for the PR description, and that the file
+should be deleted once the PR is opened (it's gitignored and meant to be transient).
