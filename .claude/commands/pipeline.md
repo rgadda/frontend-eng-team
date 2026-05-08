@@ -14,6 +14,8 @@ $ARGUMENTS
 
 **The multi-agent pipeline is orchestrated in `.agents/pipeline.md`.**
 
+If this is a new Claude session, run `.claude/commands/context.md` once first to seed the static workspace context.
+
 Follow that file for:
 - Phase 1 (Architect) instructions and output format
 - Approval gate (hard stop before Phase 2)
