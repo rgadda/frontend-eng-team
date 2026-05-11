@@ -15,8 +15,17 @@ passing structured outputs from one phase to the next.
 The task to orchestrate is provided by the activating tool:
 
 - **Claude Code:** `.claude/commands/pipeline.md` substitutes `$ARGUMENTS` with the user's
-  input and includes it in the prompt above this file's contents.
-- **Copilot or other tools:** the user pastes the task into the chat alongside this file.
+  input and includes it in the prompt above this file's contents. Individual phases are
+  available as `/architect`, `/implement`, `/review`, `/verify`.
+- **Copilot in VS Code:** individual phases are exposed as slash commands in Copilot Chat,
+  sourced from `.github/prompts/<name>.prompt.md`:
+  - Phase 1 — `/architect <task>` (`.github/prompts/architect.prompt.md`)
+  - Phase 2 — `/implement` (`.github/prompts/implement.prompt.md`)
+  - Phase 3 — `/review` (`.github/prompts/review.prompt.md`)
+  - Phase 4 — `/verify` (`.github/prompts/verify.prompt.md`)
+
+  For the full pipeline, paste this file's contents into Copilot Chat alongside the task.
+- **Other tools:** paste the task into the chat alongside this file.
 
 If you cannot find a task in the activating prompt, stop and ask the user for one.
 
@@ -25,6 +34,8 @@ If you cannot find a task in the activating prompt, stop and ask the user for on
 ## Phase 1 — ARCHITECT
 
 Activate the Architect role from `.agents/roles/architect.md`.
+*(VS Code Copilot users running this phase standalone: type `/architect <task>` in
+Copilot Chat — this loads `.github/prompts/architect.prompt.md`.)*
 
 Instructions:
 - Read CLAUDE.md to understand project constraints
@@ -86,6 +97,8 @@ Only after the user has explicitly approved the plan, proceed to Phase 2.
 ## Phase 2 — IMPLEMENTER
 
 Activate the Implementer role from `.agents/roles/implementer.md`.
+*(VS Code Copilot users running this phase standalone: type `/implement` in Copilot
+Chat — this loads `.github/prompts/implement.prompt.md`.)*
 
 Instructions:
 - Use the Architect's plan from Phase 1 as your spec
@@ -112,6 +125,8 @@ Do not proceed to Phase 3 until all steps are executed or all blockers are docum
 ## Phase 3 — REVIEWER
 
 Activate the Reviewer role from `.agents/roles/reviewer.md`.
+*(VS Code Copilot users running this phase standalone: type `/review` in Copilot
+Chat — this loads `.github/prompts/review.prompt.md`.)*
 
 Instructions:
 - Review the changed files from Phase 2
@@ -137,6 +152,8 @@ PHASE 3: REVIEWER OUTPUT
 ## Phase 4 — VERIFIER
 
 Activate the Verifier role from `.agents/roles/verifier.md`.
+*(VS Code Copilot users running this phase standalone: type `/verify` in Copilot
+Chat — this loads `.github/prompts/verify.prompt.md`.)*
 
 Instructions:
 - Check all three artifacts: Phase 1 plan, Phase 2 implementation, Phase 3 review
