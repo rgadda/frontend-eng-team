@@ -1,0 +1,18 @@
+{
+  "name": "frontend-team-marketplace",
+  "owner": {
+    "name": "Frontend Eng Team",
+    "email": "rajivgadda@gmail.com"
+  },
+  "metadata": {
+    "description": "Private marketplace for the frontend team's Claude Code plugins. Distributes versioned subagents (repo-explorer, frontend-reviewer, test-runner, verifier) and skills (component-conventions, pr-prep) across team repos."
+  },
+  "plugins": [
+    {
+      "name": "frontend-team",
+      "source": "./plugins/frontend-team",
+      "description": "Frontend team agents (repo-explorer, frontend-reviewer, test-runner, verifier) and skills (component-conventions, pr-prep). React 18 + TypeScript + Vite + Axios + CSS Modules + Jest/RTL + Playwright conventions inlined.",
+      "version": "0.1.0"
+    }
+  ]
+}

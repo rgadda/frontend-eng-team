@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "frontend-team-marketplace": {
+      "source": {
+        "source": "local",
+        "path": "."
+      }
+    }
+  },
+  "enabledPlugins": {
+    "frontend-team@frontend-team-marketplace": true
+  }
+}

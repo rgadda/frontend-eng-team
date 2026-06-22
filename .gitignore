@@ -2,3 +2,7 @@
 # Read by Implementer / Reviewer / Verifier on the same branch.
 # Deleted (or used to seed the PR description) once the work is merged.
 branch-plan.md
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store
