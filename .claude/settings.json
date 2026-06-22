@@ -2,7 +2,7 @@
   "extraKnownMarketplaces": {
     "frontend-team-marketplace": {
       "source": {
-        "source": "local",
+        "source": "directory",
         "path": "."
       }
     }

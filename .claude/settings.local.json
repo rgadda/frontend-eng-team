@@ -7,7 +7,11 @@
       "Bash(unset GITHUB_TOKEN)",
       "Bash(npx tsx *)",
       "Bash(echo \"exit=$?\")",
-      "Bash(grep -rn '\\\\$ARGUMENTS' /Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team/.agents)"
+      "Bash(grep -rn '\\\\$ARGUMENTS' /Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team/.agents)",
+      "Bash(claude plugin *)",
+      "Bash(echo \"---EXIT=$?\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
     ]
   }
 }
