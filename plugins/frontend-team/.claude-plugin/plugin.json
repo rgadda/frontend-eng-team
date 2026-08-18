@@ -1,5 +1,5 @@
 {
   "name": "frontend-team",
-  "description": "Frontend team agents and skills: read-only repo explorer + reviewer, sonnet test-runner and verifier (with Bash), and main-context skills for component conventions and PR prep. CLAUDE.md conventions inlined into every subagent.",
-  "version": "0.1.0"
+  "description": "Frontend team agents and skills: read-only repo-explorer + frontend-reviewer + prod-readiness, sonnet test-runner and 25-item verifier (with Bash), and main-context skills for component conventions, PR prep, PM clarify, and loop-engineering RCC pattern. CLAUDE.md conventions inlined into every subagent.",
+  "version": "0.2.0"
 }

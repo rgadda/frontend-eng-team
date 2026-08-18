@@ -129,6 +129,34 @@ file-anchored, and actionable.
 
 ---
 
+## Memory: read before verifying
+
+```bash
+BR="$(git rev-parse --abbrev-ref HEAD)"
+
+grep "\"branch\":\"$BR\"" .agents/memory/plans.jsonl 2>/dev/null | tail -1
+grep "\"branch\":\"$BR\"" .agents/memory/implementations.jsonl 2>/dev/null | tail -1
+grep "\"branch\":\"$BR\"" .agents/memory/reviews.jsonl 2>/dev/null | tail -1
+grep "\"branch\":\"$BR\"" .agents/memory/prod_readiness.jsonl 2>/dev/null | tail -1
+```
+
+Summaries give you the phase context cheaply. Open full artifacts only when
+evidence is missing from the summary and you need to cite `file:line`.
+
+## Memory: write after verifying
+
+```bash
+.agents/memory/append.sh verifications.jsonl verifier <loop_iteration> \
+  <final|failed> \
+  "<one-paragraph summary: gate result, first failed item if any, tsc/eslint/build status>" \
+  --task "<original task string>" \
+  --tags "<same tags as the plan>" \
+  --decisions "Gate: <PASS|FAIL>|Failed items: <list or none>|Loop iteration: N of 3" \
+  --artifact-ref "verified-diff@$(git rev-parse HEAD 2>/dev/null || echo local)"
+```
+
+---
+
 ## Verification Checklist
 
 ### Pipeline Compliance
@@ -163,7 +191,14 @@ file-anchored, and actionable.
 ### Production Readiness
 18. **Error states** — does the implementation handle API errors, empty data, and loading states?
 19. **Cleanup** — are useEffect cleanups present for listeners, subscriptions, timers, and abort controllers?
-20. **Security** — no dangerouslySetInnerHTML without sanitization, no tokens in localStorage, no secrets in client code?
+20. **Security basics** — no dangerouslySetInnerHTML without sanitization, no tokens in localStorage, no secrets in client code?
+
+### Security + SRE (baked-in gates — always run)
+21. **Input handling** — user input validated at the boundary; no unencoded interpolation into URLs, `href`, `src`, or query strings; no injection sinks introduced.
+22. **Auth and session** — session/token flows fail closed (missing/expired → redirect/reject); UI-hidden protection is backed by server enforcement, not a substitute for it.
+23. **Timeouts and failure paths** — every new outbound network call has a timeout; 4xx / 5xx / offline / timeout each surface a graceful user path (not just "spinner forever").
+24. **Observability** — errors are logged or reported at the point of failure with enough context (endpoint, status, correlation id) that on-call could debug from production; no silent `catch { }`.
+25. **Prod-readiness handoff** — if the plan was tagged `sensitive:*`, the `prod-readiness` subagent's verdict was PASS or CONCERNS (BLOCK auto-FAILs this item). If the plan carried no sensitive tag, this item is PASS by default with the reason "no sensitive tag; baked-in gates cover".
 
 ---
 
@@ -200,7 +235,14 @@ file-anchored, and actionable.
 ### Production Readiness
 18. Error states: PASS/FAIL — evidence
 19. Cleanup: PASS/FAIL — evidence
-20. Security: PASS/FAIL — evidence
+20. Security basics: PASS/FAIL — evidence
+
+### Security + SRE (baked-in)
+21. Input handling: PASS/FAIL — evidence
+22. Auth and session: PASS/FAIL — evidence
+23. Timeouts and failure paths: PASS/FAIL — evidence
+24. Observability: PASS/FAIL — evidence
+25. Prod-readiness handoff: PASS/FAIL — evidence (cite prod-readiness verdict or "no sensitive tag")
 
 ## Issues for Implementer (if FAIL)
 Priority 1 (blocking):

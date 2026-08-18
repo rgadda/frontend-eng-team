@@ -1,6 +1,6 @@
 ---
 name: frontend-reviewer
-description: Read-only diff reviewer for React 18 + TypeScript 5 + Vite frontend changes. Use PROACTIVELY after the Implementer reports changed files, or when the user asks to "review the diff", "check the changes", "code review", "look for issues". Reads the changed files and surrounding patterns, returns CRITICAL/RECOMMENDED/OPTIONAL/Positives/Verdict — does NOT rewrite code. Stays under 500 tokens unless verdict requires more.
+description: Read-only diff reviewer for React 18 + TypeScript 5 + Vite frontend changes. Use PROACTIVELY after the Implementer reports changed files, or when the user asks to "review the diff", "check the changes", "code review", "look for issues". Reads the changed files and surrounding patterns, returns CRITICAL/RECOMMENDED/OPTIONAL/Positives/Verdict — does NOT rewrite code. Includes security + SRE basics (tokens in localStorage, silent catches, missing timeouts, missing useEffect cleanup). Stays under 500 tokens unless verdict requires more.
 tools: Read, Grep, Glob
 model: sonnet
 ---
@@ -74,6 +74,17 @@ e2e/[feature].spec.ts
 - New dependencies justified? (CRITICAL if unjustified)
 - Memoization only where there is a proven hot path — not blanket `useMemo`/`useCallback` (flag as OPTIONAL to remove).
 - Dynamic imports for large route-level chunks.
+
+### Security + SRE basics (check explicitly — always run)
+- Tokens or secrets stored in `localStorage` or embedded in client code → CRITICAL.
+- `dangerouslySetInnerHTML` without a sanitizer (DOMPurify or equivalent) → CRITICAL.
+- User input interpolated into a URL, `href`, `src`, or query string without encoding → CRITICAL.
+- Silent `catch { }` blocks (no re-throw, no log, no user-visible handling) → CRITICAL.
+- Outbound network call with no timeout → RECOMMENDED (CRITICAL if user-blocking).
+- `useEffect` without cleanup for listeners, timers, subscriptions, or in-flight requests → CRITICAL for frequently-mounted components, RECOMMENDED otherwise.
+- 4xx / 5xx / offline / timeout without a user-visible failure path → CRITICAL for user-initiated actions.
+
+For high-risk changes tagged `sensitive:*` in the plan, the pipeline invokes a dedicated `prod-readiness` subagent between your review and the Verifier. You do NOT need to be exhaustive on those — catch the obvious, note the sensitive tag in your Positives section, and let `prod-readiness` do the deep pass.
 
 ## How to work
 

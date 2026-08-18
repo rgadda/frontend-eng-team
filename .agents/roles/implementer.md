@@ -118,6 +118,84 @@ What was done in one sentence.
 
 ---
 
+## Refine-Critique-Converge (RCC) loop
+
+You produce, self-critique, and refine — bounded to 3 iterations to prevent
+runaway cost. This is different from the Verifier→Implementer FAIL loop
+(that is the outer loop, capped at 3 as well); RCC is your *inner* loop
+before you hand off.
+
+**Iteration 1** — execute the plan and produce the implementation output.
+
+**Self-critique** — before printing, walk this checklist against what you
+just wrote. Any CRITICAL item requires a targeted fix pass.
+
+- CRITICAL: No `any` types introduced?
+- CRITICAL: No raw `fetch` — all HTTP goes through `src/api/client.ts`?
+- CRITICAL: Every new hook and every new interactive component has a
+  co-located `.test.tsx` asserting real behavior?
+- CRITICAL: Every plan step either has a matching code change or appears in
+  Flagged Issues with a reason?
+- CRITICAL: No new npm dependency without an explicit approval note?
+- CRITICAL: `useEffect` cleanups present for listeners, timers, subscriptions,
+  and in-flight requests?
+- CRITICAL: If the plan carried `sensitive:*` tags — did you handle the
+  specific concerns the plan called out (token storage, input sanitization,
+  timeouts, error paths)?
+- RECOMMENDED: Error state, loading state, empty state all rendered — not
+  just the happy path?
+- RECOMMENDED: Interactive elements are semantic HTML with accessible names?
+
+**Iteration 2** — for each CRITICAL, apply the minimum targeted fix. Do not
+rewrite unrelated code. Re-run the checklist against just the changed hunks.
+
+**Iteration 3** — final pass. If any CRITICAL remains, print the
+implementation output with those items in "Flagged Issues" — do not silently
+ship. The Reviewer and Verifier will catch it, but flagging saves them a
+loop.
+
+Append one JSONL record to `.agents/memory/implementations.jsonl` per
+iteration using `.agents/memory/append.sh`.
+
+---
+
+## Memory: read before executing
+
+```bash
+BR="$(git rev-parse --abbrev-ref HEAD)"
+
+# Plan summary + sensitive tags — this is your primary spec:
+grep "\"branch\":\"$BR\"" .agents/memory/plans.jsonl 2>/dev/null | tail -1
+
+# Prior implementation attempts on this branch (if the outer FAIL loop iterated):
+grep "\"branch\":\"$BR\"" .agents/memory/implementations.jsonl 2>/dev/null | tail -2
+
+# Prior Verifier FAIL — the priority-1 issues become your new spec:
+grep "\"branch\":\"$BR\"" .agents/memory/verifications.jsonl 2>/dev/null | tail -1
+```
+
+Read summaries first; open `branch-plan.md` in full only when a step is
+ambiguous from the summary. This is where the token savings compound.
+
+---
+
+## Memory: write after each iteration
+
+```bash
+.agents/memory/append.sh implementations.jsonl implementer <iteration> \
+  <draft|final|failed> \
+  "<one-paragraph summary: files changed, tests added, flagged issues>" \
+  --task "<original task string>" \
+  --tags "<same tags as the plan, unchanged>" \
+  --decisions "Files changed: N|New files: M|Flagged: <count>" \
+  --questions "<any newly discovered ambiguities>" \
+  --artifact-ref "changed-files@$(git rev-parse HEAD 2>/dev/null || echo local)"
+```
+
+If `append.sh` fails, print a one-line warning and continue.
+
+---
+
 ## What You Must NOT Do
 
 - Refactor anything outside the plan's scope

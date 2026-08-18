@@ -3,6 +3,17 @@
 # Deleted (or used to seed the PR description) once the work is merged.
 branch-plan.md
 
+# Transient working artifact written by the PM role (features only).
+# Read by Architect / Implementer / pm-clarify on the same branch.
+# Deleted (or used to seed the "Why" section of the PR) once merged.
+branch-prd.md
+
+# Per-developer JSONL memory written by every role at end-of-phase.
+# Gitignored by default — personal workspace, not team-shared.
+# Teams that want cross-developer memory sharing can remove these lines and
+# commit the files, at the cost of noisier diffs.
+.agents/memory/*.jsonl
+
 # macOS Finder metadata
 .DS_Store
 **/.DS_Store

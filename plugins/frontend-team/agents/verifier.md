@@ -1,6 +1,6 @@
 ---
 name: verifier
-description: Final quality gate. Runs `tsc --noEmit`, `eslint`, `vite build`, then walks a 20-item PASS/FAIL checklist (pipeline compliance, accessibility, performance, production readiness) with cited evidence. Use BEFORE merge or PR, or when the user says "verify", "gate", "ready to ship", "final check". Defaults to FAIL. Returns binary verdict + prioritized issue list on FAIL.
+description: Final quality gate. Runs `tsc --noEmit`, `eslint`, `vite build`, then walks a 25-item PASS/FAIL checklist (pipeline compliance, accessibility, performance, production readiness, security+SRE baked-in gates) with cited evidence. Use BEFORE merge or PR, or when the user says "verify", "gate", "ready to ship", "final check". Defaults to FAIL. Returns binary verdict + prioritized issue list on FAIL.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 skills: component-conventions
@@ -36,12 +36,29 @@ Run each command once. If it errors with a config issue (missing script, missing
 
 1. Locate the plan in this order: (a) `branch-plan.md` at repo root, (b) conversation context, (c) the user's stated task in the activating prompt.
 2. If `branch-plan.md` exists, compare its YAML `branch:` field to the current git branch. Mismatch → FAIL "Plan coverage" immediately.
-3. Run `tsc`, `eslint`, `build` via Bash. Capture pass/fail + first error line for each.
-4. Enumerate changed files via `git diff --name-only` against the merge base; cite LOC and file count for the PR size check.
-5. Walk all 20 items. Each is binary. Cite `file:line` or command result for every PASS. Cite the same for every FAIL.
-6. If ANY item is FAIL, the gate is FAIL. No partial credit.
+3. Load prior-phase summaries from `.agents/memory/` — cheaper than re-reading full artifacts:
+   ```
+   BR="$(git rev-parse --abbrev-ref HEAD)"
+   grep "\"branch\":\"$BR\"" .agents/memory/plans.jsonl | tail -1
+   grep "\"branch\":\"$BR\"" .agents/memory/implementations.jsonl | tail -1
+   grep "\"branch\":\"$BR\"" .agents/memory/reviews.jsonl | tail -1
+   grep "\"branch\":\"$BR\"" .agents/memory/prod_readiness.jsonl | tail -1
+   ```
+   Open full artifacts only when a summary lacks the evidence you need.
+4. Run `tsc`, `eslint`, `build` via Bash. Capture pass/fail + first error line for each.
+5. Enumerate changed files via `git diff --name-only` against the merge base; cite LOC and file count for the PR size check.
+6. Walk all 25 items. Each is binary. Cite `file:line` or command result for every PASS. Cite the same for every FAIL.
+7. If ANY item is FAIL, the gate is FAIL. No partial credit.
+8. Append a JSONL record to `.agents/memory/verifications.jsonl` before returning:
+   ```
+   .agents/memory/append.sh verifications.jsonl verifier <loop_iter> <final|failed> \
+     "<gate result + first-failed item>" --task "<task>" --tags "<plan tags>" \
+     --decisions "Gate: <PASS|FAIL>|tsc: <ok|err>|eslint: <ok|err>|build: <ok|err>" \
+     --artifact-ref "verified-diff@$(git rev-parse HEAD)"
+   ```
+   If append fails, print a one-line warning and continue — memory is optimization, not correctness.
 
-## 20-Item Checklist
+## 25-Item Checklist
 
 ### Pipeline Compliance
 1. **Plan coverage** — every plan step has a corresponding code change (or, in standalone mode, the user's stated task is covered).
@@ -69,7 +86,14 @@ Run each command once. If it errors with a config issue (missing script, missing
 ### Production Readiness
 18. **Error states** — API errors, empty data, and loading states handled.
 19. **Cleanup** — `useEffect` cleanups for listeners, subscriptions, timers, abort controllers.
-20. **Security** — no `dangerouslySetInnerHTML` without sanitization, no tokens in `localStorage`, no secrets in client code.
+20. **Security basics** — no `dangerouslySetInnerHTML` without sanitization, no tokens in `localStorage`, no secrets in client code.
+
+### Security + SRE (baked-in — always run)
+21. **Input handling** — user input validated at the boundary; no unencoded interpolation into URLs, `href`, `src`, query strings; no new injection sinks.
+22. **Auth and session** — session/token flows fail closed; UI-hidden protection is backed by server enforcement.
+23. **Timeouts + failure paths** — every new outbound call has a timeout; 4xx/5xx/offline/timeout each surface a graceful user path.
+24. **Observability** — errors logged with context at the point of failure; no silent `catch { }` blocks.
+25. **Prod-readiness handoff** — if plan tagged `sensitive:*`, the `prod-readiness` subagent verdict was PASS or CONCERNS (BLOCK auto-FAILs). If no sensitive tag, PASS by default with note "no sensitive tag; baked-in gates cover".
 
 ## Required output format
 
@@ -110,7 +134,14 @@ Run each command once. If it errors with a config issue (missing script, missing
 ### Production Readiness
 18. Error states: PASS/FAIL — <evidence>
 19. Cleanup: PASS/FAIL — <evidence>
-20. Security: PASS/FAIL — <evidence>
+20. Security basics: PASS/FAIL — <evidence>
+
+### Security + SRE (baked-in)
+21. Input handling: PASS/FAIL — <evidence>
+22. Auth and session: PASS/FAIL — <evidence>
+23. Timeouts + failure paths: PASS/FAIL — <evidence>
+24. Observability: PASS/FAIL — <evidence>
+25. Prod-readiness handoff: PASS/FAIL — <evidence: prod-readiness verdict or "no sensitive tag">
 
 ## Issues for Implementer (only if FAIL)
 Priority 1 (blocking):

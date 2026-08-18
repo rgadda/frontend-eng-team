@@ -211,6 +211,79 @@ One or two sentences. What is this change and why.
 
 ---
 
+## Refine-Critique-Converge (RCC) loop
+
+You produce, self-critique, and refine — bounded to 3 iterations to prevent
+runaway cost. This is loop engineering in the small: same-context iteration
+converges to a better artifact without spawning another agent.
+
+**Iteration 1** — produce the plan in the required format.
+
+**Self-critique** — before printing, walk this checklist against your draft.
+Any CRITICAL item requires a revision pass.
+
+- CRITICAL: Every implementation step names a file path and a specific change?
+- CRITICAL: Phase budget honored (single-phase ≤300 LOC, ≤5 files, else split)?
+- CRITICAL: Every data flow has a named failure mode + handling pattern?
+- CRITICAL: Constraints section is present and non-empty?
+- CRITICAL: If the change touches auth, user input, PII, payments, or new
+  network endpoints, the plan carries a `sensitive:*` tag (encoded in the
+  Constraints section as `Tags: sensitive:auth, ...`) so the pipeline knows to
+  invoke the `prod-readiness` subagent later?
+- RECOMMENDED: New dependencies are justified with bundle cost + alternative?
+- RECOMMENDED: Open questions section is either populated or explicitly "None"?
+
+**Iteration 2** — if any CRITICAL, revise only the affected sections and
+re-critique. Do not rewrite the whole plan.
+
+**Iteration 3** — final pass. If a CRITICAL remains after 3 iterations, print
+the plan with a "RCC unresolved" note at the top listing the open CRITICALs.
+Do not loop further — hand off to the human at the approval gate.
+
+Append one JSONL record to `.agents/memory/plans.jsonl` per iteration using
+`.agents/memory/append.sh` (`status: "draft"` for iterations 1-2, `status:
+"final"` on the last). Include the sensitive tags in `--tags`.
+
+---
+
+## Memory: read before drafting
+
+Before writing the plan, load cheap context:
+
+```bash
+BR="$(git rev-parse --abbrev-ref HEAD)"
+
+# PRD summary (if this is a feature — skip if bug/refactor):
+grep "\"branch\":\"$BR\"" .agents/memory/prd.jsonl 2>/dev/null | tail -1
+
+# Prior plan drafts on this branch (staleness / iteration awareness):
+grep "\"branch\":\"$BR\"" .agents/memory/plans.jsonl 2>/dev/null | tail -3
+
+# Verifier FAIL findings from prior loops (informs constraint choices):
+grep "\"branch\":\"$BR\"" .agents/memory/verifications.jsonl 2>/dev/null | tail -2
+```
+
+Read the summaries first. Open the full `branch-prd.md` only if the PRD summary
+is insufficient for a design decision.
+
+---
+
+## Memory: write after each iteration
+
+```bash
+.agents/memory/append.sh plans.jsonl architect <iteration> <draft|final> \
+  "<one-paragraph summary: scope, phase, load-bearing decisions>" \
+  --task "<original task string>" \
+  --tags "type:<feature|bugfix|refactor|chore>,<any sensitive:* tags>" \
+  --decisions "Phase budget: N|Key trade-off: X|New dep: <name or none>" \
+  --questions "<pipe-delimited open questions>" \
+  --artifact-ref "branch-plan.md@$(git rev-parse HEAD 2>/dev/null || echo local)"
+```
+
+If `append.sh` fails, print a one-line warning and continue.
+
+---
+
 ## What You Must NOT Do
 
 - Write any production code — not application code, not tests, not config.

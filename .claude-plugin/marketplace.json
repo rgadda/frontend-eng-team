@@ -5,14 +5,14 @@
     "email": "rajivgadda@gmail.com"
   },
   "metadata": {
-    "description": "Private marketplace for the frontend team's Claude Code plugins. Distributes versioned subagents (repo-explorer, frontend-reviewer, test-runner, verifier) and skills (component-conventions, pr-prep) across team repos."
+    "description": "Private marketplace for the frontend team's Claude Code plugins. Distributes versioned subagents (repo-explorer, frontend-reviewer, test-runner, prod-readiness, 25-item verifier) and skills (component-conventions, pr-prep, pm-clarify, loop-engineering) across team repos."
   },
   "plugins": [
     {
       "name": "frontend-team",
       "source": "./plugins/frontend-team",
-      "description": "Frontend team agents (repo-explorer, frontend-reviewer, test-runner, verifier) and skills (component-conventions, pr-prep). React 18 + TypeScript + Vite + Axios + CSS Modules + Jest/RTL + Playwright conventions inlined.",
-      "version": "0.1.0"
+      "description": "Frontend team agents (repo-explorer, frontend-reviewer, test-runner, prod-readiness, verifier) and skills (component-conventions, pr-prep, pm-clarify, loop-engineering). React 18 + TypeScript + Vite + Axios + CSS Modules + Jest/RTL + Playwright conventions inlined. Verifier now 25 items with baked-in Security + SRE gates; prod-readiness fires on plans tagged sensitive:*.",
+      "version": "0.2.0"
     }
   ]
 }
