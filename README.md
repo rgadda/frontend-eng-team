@@ -1,9 +1,31 @@
 # Frontend AI Pipeline — Setup Guide
 
-This template wires a **four-role multi-agent pipeline** (Architect → Implementer →
-Reviewer → Verifier) into a frontend codebase. The role contracts live in `.agents/`
-and are tool-neutral, so the same pipeline runs in Claude Code, GitHub Copilot, or
-any other AI tool that can read project files.
+This template wires a **six-role multi-agent pipeline** (PM → Architect →
+Implementer → Reviewer → Prod-Readiness → Verifier) into a frontend codebase.
+The role contracts live in `.agents/` and are tool-neutral, so the same
+pipeline runs in Claude Code, GitHub Copilot, or any other AI tool that can
+read project files.
+
+Two of the six roles are conditional: **PM** is skipped for bug fixes,
+refactors, chores, and docs; **Prod-Readiness** fires only when the plan
+carries a `sensitive:*` tag. Every role runs a bounded Refine-Critique-Converge
+inner loop, and every phase appends a JSONL summary to `.agents/memory/` so
+downstream phases read a paragraph instead of re-parsing full artifacts.
+
+---
+
+## Quick setup
+
+- **Global (once per machine):** install the plugin globally via
+  `claude plugin marketplace add` + `claude plugin install` — see
+  [scripts/setup-global.md](scripts/setup-global.md) for exact commands.
+- **Per repo (once each):** run `ft-bootstrap` from the repo root. This copies
+  the pipeline scaffolding (role files, slash commands, memory helper) and
+  wires up `.gitignore` + a permission allowlist.
+- **Verify:** `/plugin list` shows `frontend-team`; `/agents` lists all five
+  subagents; `/pipeline <task>` runs.
+
+Full setup guide with troubleshooting: **[scripts/setup-global.md](scripts/setup-global.md)**.
 
 ---
 
@@ -21,20 +43,48 @@ repo-root/
 │
 ├── .agents/                           <- Canonical role definitions (source of truth).
 │   ├── README.md                        Overview of how the roles are organized.
-│   ├── pipeline.md                      Orchestrator: phases, approval gate, loop logic.
-│   └── roles/
-│       ├── architect.md                 Architect role contract
-│       ├── implementer.md               Implementer role contract
-│       ├── reviewer.md                  Reviewer role contract
-│       └── verifier.md                  Verifier role contract
+│   ├── pipeline.md                      Orchestrator: phases, approval gates, RCC, loop logic.
+│   ├── roles/
+│   │   ├── pm.md                        PM role — features only (skipped for bug/refactor/chore/docs)
+│   │   ├── architect.md                 Architect role contract (with RCC self-critique loop)
+│   │   ├── implementer.md               Implementer role contract (with RCC self-critique loop)
+│   │   ├── reviewer.md                  Reviewer role contract (with baked-in Security + SRE basics)
+│   │   ├── prod-readiness.md            Prod-Readiness role — conditional (sensitive:* plans only)
+│   │   └── verifier.md                  Verifier role contract (25-item checklist)
+│   └── memory/                          Persistent JSONL memory (per-developer, gitignored).
+│       ├── schema.md                    Record shape + read/write patterns
+│       └── append.sh                    Append helper called by every role at end-of-phase
 │
 ├── .claude/
-│   └── commands/                      <- Claude Code slash-command entry points.
-│       ├── architect.md                 /architect <task>  → reads .agents/roles/architect.md
-│       ├── implement.md                 /implement         → reads .agents/roles/implementer.md
-│       ├── review.md                    /review            → reads .agents/roles/reviewer.md
-│       ├── verify.md                    /verify            → reads .agents/roles/verifier.md
-│       └── pipeline.md                  /pipeline <task>   → reads .agents/pipeline.md
+│   ├── commands/                      <- Claude Code slash-command entry points.
+│   │   ├── pm.md                        /pm <task>         → reads .agents/roles/pm.md
+│   │   ├── pm-clarify.md                /pm-clarify <q>    → invokes the pm-clarify skill
+│   │   ├── architect.md                 /architect <task>  → reads .agents/roles/architect.md
+│   │   ├── implement.md                 /implement         → reads .agents/roles/implementer.md
+│   │   ├── review.md                    /review            → reads .agents/roles/reviewer.md
+│   │   ├── verify.md                    /verify            → reads .agents/roles/verifier.md
+│   │   └── pipeline.md                  /pipeline <task>   → reads .agents/pipeline.md
+│   └── settings.json                  <- Registers the local plugin marketplace +
+│                                         auto-enables the frontend-team plugin.
+│
+├── .claude-plugin/
+│   └── marketplace.json               <- Marketplace manifest (`frontend-team-marketplace`)
+│                                         that publishes the bundled plugin.
+│
+├── plugins/
+│   └── frontend-team/                 <- Versioned plugin: subagents + skills.
+│       ├── .claude-plugin/plugin.json   Plugin manifest (name, version).
+│       ├── agents/                      Subagents (forked-context helpers).
+│       │   ├── repo-explorer.md           Cheap haiku lookups: "where is X"
+│       │   ├── frontend-reviewer.md       Diff review, returns structured verdict
+│       │   ├── test-runner.md             Runs Jest + Playwright, summarized output
+│       │   ├── prod-readiness.md          On-demand Security + SRE deep pass (haiku)
+│       │   └── verifier.md                Final tsc/eslint/build gate + 25-item checklist
+│       └── skills/                      Skills (main-context convention reminders).
+│           ├── component-conventions/     React/TS/CSS/Axios/test playbook
+│           ├── pr-prep/                   Pre-push diff hygiene + gates
+│           ├── pm-clarify/                Dev/tester PRD Q&A grounded in branch-prd.md
+│           └── loop-engineering/          Reference for the RCC self-critique pattern
 │
 ├── .github/
 │   └── copilot-instructions.md        <- Copilot entry point. Auto-loaded by VS Code
@@ -46,8 +96,10 @@ repo-root/
 ├── pr-tracking.md                     <- PR-level tracking templates.
 │
 └── scripts/
-    └── collect-pr-metrics.ts          <- Self-contained CLI for measuring PR velocity.
-                                          See scripts/README.md for portable usage.
+    ├── ft-bootstrap.sh                <- Per-repo installer for the pipeline scaffolding.
+    ├── setup-global.md                <- Full global setup guide (plugin + bootstrap).
+    ├── collect-pr-metrics.ts          <- Self-contained CLI for measuring PR velocity.
+    └── README.md                      <- Portable usage guide for the metrics script.
 ```
 
 ---
@@ -59,9 +111,10 @@ The role definitions are the same across every tool — only the activation mech
 ### Claude Code (slash commands)
 
 `CLAUDE.md` is auto-loaded at session start, so project rules apply to every conversation.
-Slash commands in `.claude/commands/` become `/architect`, `/implement`, `/review`,
-`/verify`, and `/pipeline`. Each command file imperatively reads its matching
-`.agents/roles/*.md` (or `.agents/pipeline.md` for the orchestrator) and follows it.
+Slash commands in `.claude/commands/` become `/pm`, `/pm-clarify`, `/architect`,
+`/implement`, `/review`, `/verify`, and `/pipeline`. Each command file
+imperatively reads its matching `.agents/roles/*.md` (or `.agents/pipeline.md`
+for the orchestrator) and follows it.
 
 ### GitHub Copilot in VS Code (paste-driven)
 
@@ -76,6 +129,34 @@ Copilot does not support user-defined slash commands like `/pipeline`. Instead:
   [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
 - The `@workspace` agent and Copilot Edits / Agent mode work normally during Phase 2
   for multi-file changes.
+
+### Subagents and skills (Claude Code plugin)
+
+In addition to the slash commands, this repo ships a Claude Code **plugin** at
+`plugins/frontend-team/` that publishes five subagents and four skills via the
+`frontend-team-marketplace` defined in `.claude-plugin/marketplace.json`.
+
+Cloning this repo and opening it in Claude Code is enough — `.claude/settings.json`
+registers the marketplace and auto-enables the plugin. To use it from any other
+repo, install the plugin **globally once**, then bootstrap the pipeline
+scaffolding **per repo**:
+
+```bash
+# Once per machine:
+claude plugin marketplace add <owner>/frontend-eng-team --scope user
+claude plugin install frontend-team@frontend-team-marketplace --scope user
+
+# Once per target repo:
+cd /path/to/some-frontend-project
+ft-bootstrap
+```
+
+Full walkthrough with troubleshooting: [scripts/setup-global.md](scripts/setup-global.md).
+
+Verify with `/agents` (you should see `repo-explorer`, `frontend-reviewer`,
+`test-runner`, `prod-readiness`, `verifier`).
+
+See **Using subagents efficiently** below for when each one earns its keep.
 
 ### Other AI tools
 
@@ -161,6 +242,84 @@ Activate this role. Execute this plan exactly: <paste Phase 1 output>
 
 ---
 
+## Using subagents efficiently
+
+The slash commands (`/architect`, `/implement`) run in the **main session** because
+they need `CLAUDE.md` inheritance and an interactive review surface. The subagents
+in the plugin run in **forked contexts** — they spin up, do read-heavy work, and
+return a summary. The raw file dumps, grep output, and test logs never enter the
+main transcript, which keeps the cache hot and the token budget healthy.
+
+### What each subagent is for
+
+| Subagent | Model | When to invoke | Returns |
+|---|---|---|---|
+| `repo-explorer` | haiku | Before writing code, when you need to locate a file, find usages, or surface a convention example | Prioritized path list with one-line rationales |
+| `frontend-reviewer` | sonnet | After the Implementer reports changed files | CRITICAL / RECOMMENDED / OPTIONAL / Positives / Verdict (with baked-in Security + SRE basics) |
+| `test-runner` | sonnet | After implementation, before the verifier gate | Pass/fail counts, failed test names, one-line cause, repro command |
+| `prod-readiness` | haiku | Between Reviewer and Verifier, **only** when the plan carries a `sensitive:*` tag | 10-item Security + SRE checklist + PASS / CONCERNS / BLOCK verdict |
+| `verifier` | sonnet | Before PR or merge — the final gate | Binary PASS/FAIL + prioritized issue list against a 25-item checklist; defaults to FAIL |
+
+### How to activate them
+
+Each subagent's `description` field declares trigger keywords. In Claude Code,
+phrase your request to match — the orchestrator auto-routes without an explicit
+`@agent` call:
+
+- "**find** the auth context provider" → `repo-explorer`
+- "**review the diff**" / "**code review**" / "**check the changes**" → `frontend-reviewer`
+- "**run tests**" / "**run jest**" / "**are tests green**" → `test-runner`
+- "**prod readiness**" / "**security check**" / "**sensitive change**" → `prod-readiness`
+- "**verify**" / "**ready to ship**" / "**final check**" → `verifier`
+
+`prod-readiness` is deliberately on-demand — the pipeline invokes it
+automatically when the Architect tags the plan `sensitive:*`; you rarely
+call it by hand.
+
+You can also call them explicitly: `Have repo-explorer find every place that uses
+the Axios client.`
+
+### Efficiency rules
+
+1. **Use `repo-explorer` (haiku) for lookups instead of grepping yourself.** Broad
+   "where is X" questions burn main-context tokens on raw file output. A haiku
+   subagent answers for ~10× less cost and returns only the path list.
+2. **Run independent subagents in parallel.** If you need a diff review and a
+   test run after the same change, fire both in one turn. They don't share state.
+3. **Don't fork for trivial work.** A one-file typo fix is faster done in the main
+   session than handed to a subagent — the fork overhead exceeds the savings.
+4. **Don't try to override subagent conventions mid-task.** Subagents do **not**
+   inherit `CLAUDE.md`; the conventions they enforce are inlined in their system
+   prompt. If a rule needs to change, edit the subagent file and bump the plugin
+   version — don't argue with them in chat.
+5. **Keep `description` fields stable.** Subagent descriptions form part of the
+   cached prompt prefix. Changing wording invalidates the cache for every session
+   that uses the plugin. Edit deliberately, bump the plugin version, and let teams
+   re-pull.
+6. **Treat the verifier as the gate, not as feedback.** It defaults to FAIL and
+   demands cited evidence. Don't invoke it mid-implementation to "see how we're
+   doing" — that wastes a sonnet run. Invoke it once when you believe you're done.
+7. **Watch `/context` after a long session.** If the budget is tight, prefer
+   subagents over main-session reads for the next chunk of work.
+
+### Skills vs. subagents — when to use which
+
+Skills (`component-conventions`, `pr-prep`, `pm-clarify`, `loop-engineering`)
+run **in the main context** with no fork. They are convention reminders,
+playbooks, and Q&A helpers — not workers. Use them when you want the rules
+loaded into your active session (e.g., right before writing a new component,
+opening a PR, or answering a scope question from a dev/tester). Use subagents
+when you want work done **without polluting the main transcript**.
+
+Skill triggers at a glance:
+
+- **`component-conventions`** — "new component", "create hook", "refactor component"
+- **`pr-prep`** — "open PR", "ready to ship", "before I push", "PR description"
+- **`pm-clarify`** — "clarify", "what does the PRD say", "is this in scope"
+- **`loop-engineering`** — "add self-critique", "add RCC loop", "iterate the plan"
+
+---
+
 ## GitHub PR Metrics Script
 
 `scripts/collect-pr-metrics.ts` is a CLI that collects merged-PR data from a GitHub repo,
@@ -208,7 +367,7 @@ For flag reference, output formats, error handling, and test instructions, see
 This is a generic frontend team template. To adapt it for your project:
 
 1. **CLAUDE.md** — Update the tech stack table, styling conventions, and "never do" list to match your project's actual stack and standards.
-2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 20-item checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
+2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 25-item checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
 3. **`.agents/pipeline.md`** — Tweak the orchestration if you want different phase boundaries, a stricter approval gate, or extra loop iterations.
 4. **Tool entry points** — `.claude/commands/*.md` and `.github/copilot-instructions.md` are thin wrappers that delegate to `.agents/`. Edit them only if your Claude Code or Copilot integration changes.
 5. **Test the pipeline** — Run `/pipeline` (or the Copilot paste workflow) on a small, real task from your backlog to validate the setup before team rollout.
@@ -221,10 +380,19 @@ This is a generic frontend team template. To adapt it for your project:
 |---|---|---|
 | `CLAUDE.md` | Tech lead | Stack changes, new conventions, new dependencies |
 | `AGENTS.md` | Tech lead | Multi-tool entry-point updates (rare) |
-| `.agents/pipeline.md` | Tech lead | Phase, approval-gate, or loop-logic changes |
-| `.agents/roles/architect.md` | Tech lead | Architect identity, output-format, or constraint refinements |
-| `.agents/roles/implementer.md` | Tech lead | Implementer identity, output-format, or constraint refinements |
-| `.agents/roles/reviewer.md` | Tech lead | Review rubric and severity-level changes |
-| `.agents/roles/verifier.md` | Tech lead | 20-item checklist or quality-gate changes |
+| `.agents/pipeline.md` | Tech lead | Phase, approval-gate, RCC, or loop-logic changes |
+| `.agents/roles/pm.md` | Tech lead | PM identity, PRD format, skip-rule refinements |
+| `.agents/roles/architect.md` | Tech lead | Architect identity, output-format, sensitive-tag list, or RCC checklist refinements |
+| `.agents/roles/implementer.md` | Tech lead | Implementer identity, output-format, or RCC checklist refinements |
+| `.agents/roles/reviewer.md` | Tech lead | Review rubric, Security/SRE basics, and severity-level changes |
+| `.agents/roles/prod-readiness.md` | Tech lead | Security + SRE deep-pass checklist, sensitive-tag triggers |
+| `.agents/roles/verifier.md` | Tech lead | 25-item checklist or quality-gate changes |
+| `.agents/memory/schema.md` | Tech lead | JSONL record shape or read/write pattern changes |
+| `.agents/memory/append.sh` | Tech lead | Append helper — treat as versioned, bump plugin/repo when changed |
 | `.claude/commands/*.md` | Tech lead | Claude Code slash-command wiring (only when delegation pattern changes) |
+| `.claude-plugin/marketplace.json` | Tech lead | Bump plugin version entry whenever the plugin is updated |
+| `plugins/frontend-team/agents/*.md` | Tech lead | Subagent contracts — bump plugin version on any change |
+| `plugins/frontend-team/skills/**` | Tech lead | Skill bodies and triggers — bump plugin version on any change |
 | `.github/copilot-instructions.md` | Tech lead | Copilot paste-workflow updates (only when role files change shape) |
+| `scripts/ft-bootstrap.sh` | Tech lead | Bootstrap logic — update when the file map changes |
+| `scripts/setup-global.md` | Tech lead | Global setup instructions — update when install commands change |
