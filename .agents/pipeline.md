@@ -277,6 +277,15 @@ PHASE 3: REVIEWER OUTPUT
 ===============================
 ```
 
+Handling the Reviewer verdict (mirrors Phase 3.5's Prod-Readiness handler):
+- **APPROVE** — proceed to Phase 3.5.
+- **APPROVE WITH CHANGES** — proceed to Phase 3.5. RECOMMENDED items are
+  preserved in `reviews.jsonl` (`open_questions` field) and consumed by
+  the Phase 4.5 sweep pass after the Verifier passes.
+- **REQUEST CHANGES** — do NOT proceed. Re-enter Phase 2 with the
+  Reviewer's CRITICAL items as the new spec. This counts against the
+  outer 3-iteration cap.
+
 ---
 
 ## Phase 3.5 — PROD-READINESS (conditional)
@@ -361,13 +370,63 @@ Outer loop limit reached (3 iterations). Human intervention required.
 Summary of last Verifier output above.
 ```
 
-If Phase 4 Gate is **PASS**:
+If Phase 4 Gate is **PASS**, do NOT print PIPELINE COMPLETE yet — first
+run the Phase 4.5 sweep pass below.
+
+---
+
+## Phase 4.5 — RECOMMENDED sweep pass (conditional)
+
+Fires only after Phase 4 = PASS. Its purpose is to close out the
+Reviewer's RECOMMENDED items in this same PR instead of losing them to
+a phantom follow-up that nobody creates.
+
+Read the RECOMMENDED items from the last Reviewer record:
+
+```bash
+BR="$(git rev-parse --abbrev-ref HEAD)"
+grep "\"branch\":\"$BR\"" .agents/memory/reviews.jsonl 2>/dev/null | tail -1
+```
+
+Extract the `open_questions` field. If it is empty (or `Recommended count: 0`
+in `key_decisions`), skip and go straight to PIPELINE COMPLETE. Print:
+
+```
+===============================
+PHASE 4.5: SWEEP PASS — SKIPPED
+===============================
+No RECOMMENDED items to sweep.
+```
+
+Otherwise, re-activate the Implementer in **sweep mode** with a hard
+budget:
+- **Scope**: only the RECOMMENDED items from the last Reviewer record.
+  No scope expansion. No unrelated cleanup.
+- **Budget**: ≤100 LOC delta, no new files, no new dependencies.
+- **Overflow rule**: if a subset of items fits the budget, apply only
+  those; move the leftovers to Flagged Issues as follow-up-PR work.
+
+After the sweep, re-run Phase 3 (Reviewer, focused on whether the
+RECOMMENDED items are addressed and no new CRITICALs were introduced)
+and Phase 4 (Verifier, full 25-item checklist). The sweep + its
+re-review + its re-verify count as **one** outer loop iteration against
+the 3-iteration cap.
+
+Label this section clearly:
+```
+===============================
+PHASE 4.5: SWEEP PASS OUTPUT
+===============================
+```
+
+If the post-sweep Verifier passes, print:
 
 ```
 PIPELINE COMPLETE
 All 25 checks passed. Ready for human review.
 Summary of changes: [one paragraph]
 Sensitive tags handled: [list, or "none"]
+RECOMMENDED items swept: [N of M — list overflow items if any]
 ```
 
 After the completion message, remind the user that `branch-plan.md` (and, for
@@ -381,8 +440,11 @@ description, and that both files should be deleted once the PR is opened
 
 - **Skip PM** for bug/refactor/chore/docs → no Phase 0, no PRD gate.
 - **Skip prod-readiness** when the plan has no `sensitive:*` tag → no Phase 3.5.
+- **Skip sweep pass** when the Reviewer produced zero RECOMMENDED items → no Phase 4.5.
 - **RCC caps at 3 iterations** per phase → bounded self-critique cost.
-- **Outer FAIL loop caps at 3 iterations** → bounded convergence cost.
+- **Outer FAIL loop caps at 3 iterations** → bounded convergence cost. Sweep
+  pass (Phase 4.5) counts as one outer iteration; its budget is capped at
+  100 LOC / 0 new files / 0 new deps to keep cost bounded.
 - **Summaries beat full artifacts** → JSONL memory is the default read source;
   full files are the escalation.
 - **On-demand > always-on** for subagents. `prod-readiness` fires only when the

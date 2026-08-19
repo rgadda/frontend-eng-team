@@ -142,6 +142,19 @@ just wrote. Any CRITICAL item requires a targeted fix pass.
 - CRITICAL: If the plan carried `sensitive:*` tags — did you handle the
   specific concerns the plan called out (token storage, input sanitization,
   timeouts, error paths)?
+- CRITICAL: File, hook, and export names match the nearest sibling files in
+  the same feature directory — no invented naming convention?
+- CRITICAL: Import order and path style (alias vs relative) match the three
+  closest existing files you read or touched?
+- CRITICAL: Before creating a new util, hook, or component, you searched
+  `src/shared/` and adjacent features for an existing equivalent — and
+  either reused it or cited the search result in Assumptions with a reason
+  why nothing fit?
+- CRITICAL: Error-handling shape (try/catch structure, UI error surface,
+  logging pattern) matches the pattern used in the closest existing
+  feature module?
+- CRITICAL: CSS class names describe purpose, not appearance, and reuse
+  variables from `src/styles/variables.css` where applicable?
 - RECOMMENDED: Error state, loading state, empty state all rendered — not
   just the happy path?
 - RECOMMENDED: Interactive elements are semantic HTML with accessible names?
@@ -212,6 +225,11 @@ If `append.sh` fails, print a one-line warning and continue.
 ## Instructions
 
 1. Read CLAUDE.md. Every rule there applies to your output.
+   If this task creates or modifies a React component, hook, or feature
+   module, also invoke the `frontend-team:component-conventions` skill
+   before writing any code. It codifies the load-bearing conventions
+   (TS strict, CSS Modules + variables, Axios client, feature colocation,
+   explicit return types, `interface` over `type`) that must not drift.
 2. Locate the Architect's plan. Check sources in this order, stopping at the first hit:
    a. `branch-plan.md` at the project root (literal filename — not branch-suffixed).
       If it exists, this is the canonical plan. Open it and read the YAML header at
@@ -225,13 +243,21 @@ If `append.sh` fails, print a one-line warning and continue.
       Treat it as the spec and proceed; the staleness check does not apply.
    If you cannot find any task description in any source, stop and ask.
 3. Read the files the Architect identified. Also read their immediate neighbors for style context.
-4. Execute each plan step in order. Do not skip, combine, or reorder steps.
-5. For every new module or hook you create, create a co-located `.test.tsx` or `.test.ts`.
-6. Do not use raw `fetch` — use the shared Axios instance. Do not install unapproved dependencies.
-7. Do not use `any`. If you can't type something, add it to Flagged Issues.
-8. Use CSS Modules for styling. No inline styles unless the value is dynamic.
-9. Ensure all interactive elements are keyboard-accessible and have appropriate ARIA attributes.
-10. Produce the structured output exactly as specified above.
+4. **Convention scouting pass** — before writing any code, invoke the
+   `frontend-team:repo-explorer` subagent with a targeted query naming
+   the component type, hook shape, or API resource you are about to add
+   (e.g. *"3 closest examples of a form-with-Axios-submit in `src/features/*`"*).
+   Read the examples it returns. Match their naming, import order, error
+   handling, and test shape. If no existing example fits, state that
+   explicitly in Assumptions before inventing a new pattern — do not
+   silently start a new convention.
+5. Execute each plan step in order. Do not skip, combine, or reorder steps.
+6. For every new module or hook you create, create a co-located `.test.tsx` or `.test.ts`.
+7. Do not use raw `fetch` — use the shared Axios instance. Do not install unapproved dependencies.
+8. Do not use `any`. If you can't type something, add it to Flagged Issues.
+9. Use CSS Modules for styling. No inline styles unless the value is dynamic.
+10. Ensure all interactive elements are keyboard-accessible and have appropriate ARIA attributes.
+11. Produce the structured output exactly as specified above.
 
 If the Architect's plan has a step you cannot execute as written (missing context, ambiguous path,
 TypeScript conflict), stop at that step, explain the blocker in Flagged Issues, and complete

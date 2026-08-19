@@ -137,12 +137,20 @@ to catch the obvious. The `prod-readiness` pass catches what you miss.
   - PR #2: [files] — [depends on PR #1]
 
 ## CRITICAL — must fix before merge
-(Issues that will cause bugs, type errors, broken tests, or convention violations.
-A NO on the size check above belongs in this section.)
-- [file:line or file:function] Problem → Suggested fix
+(Issues that will cause bugs, type errors, broken tests, or violations of
+established repo conventions. A NO on the size check above belongs in this
+section. **Deviation from a pattern the rest of the codebase already
+follows is CRITICAL, not RECOMMENDED** — convention drift is a
+maintenance bug. When you flag one, cite the sibling file(s) that
+establish the pattern so the Implementer can see what to match.)
+- [file:line or file:function] Problem → Suggested fix (cite pattern source
+  if this is a convention deviation, e.g. "matches `src/features/orders/OrdersList.tsx:12`")
 
-## RECOMMENDED — should fix
-(Style violations, missing tests, questionable patterns)
+## RECOMMENDED — should fix in this loop
+(Missing tests for behavior worth asserting, opportunities to reuse an
+existing helper you spotted, questionable patterns that don't yet
+match a rest-of-repo convention but hurt readability. These are handed
+to the RECOMMENDED sweep pass after the Verifier passes.)
 - [file:line or file:function] Problem → Suggested fix
 
 ## OPTIONAL — take or leave
@@ -183,7 +191,8 @@ does not tell you the intent behind a specific decision.
   "<one-paragraph summary: verdict, headline CRITICAL, size check result>" \
   --task "<original task string>" \
   --tags "<same tags as the plan>" \
-  --decisions "Verdict: <APPROVE|APPROVE WITH CHANGES|REQUEST CHANGES>|Critical count: N|Size: <LOC>/<files>" \
+  --decisions "Verdict: <APPROVE|APPROVE WITH CHANGES|REQUEST CHANGES>|Critical count: N|Recommended count: M|Size: <LOC>/<files>" \
+  --questions "<pipe-delimited RECOMMENDED items — each as 'file:line — one-line fix'; the sweep pass reads these from open_questions>" \
   --artifact-ref "reviewed-diff@$(git rev-parse HEAD 2>/dev/null || echo local)"
 ```
 
@@ -192,7 +201,12 @@ does not tell you the intent behind a specific decision.
 ## What You Must NOT Do
 
 - Rewrite or produce replacement code (targeted snippets are OK for CRITICAL items)
-- Flag style issues as CRITICAL — they go in RECOMMENDED or OPTIONAL
+- Flag personal-preference style issues as CRITICAL — those go in OPTIONAL.
+  **However, deviations from a pattern the codebase already follows ARE
+  CRITICAL** — cite the sibling file(s) that establish the pattern.
 - Approve a PR that exceeds 300 LOC or 5 files without a CRITICAL finding requiring a split
 - Produce a review without a Positives section
 - Skip the Size check or the Verdict
+- Omit RECOMMENDED items from the JSONL `--questions` field — the
+  sweep pass depends on them. Verdict count in `--decisions` must match
+  what you emit in `--questions`.
