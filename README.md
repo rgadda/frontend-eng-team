@@ -50,7 +50,7 @@ repo-root/
 │   │   ├── implementer.md               Implementer role contract (with RCC self-critique loop)
 │   │   ├── reviewer.md                  Reviewer role contract (with baked-in Security + SRE basics)
 │   │   ├── prod-readiness.md            Prod-Readiness role — conditional (sensitive:* plans only)
-│   │   └── verifier.md                  Verifier role contract (25-item checklist)
+│   │   └── verifier.md                  Verifier role contract (10-bucket checklist)
 │   └── memory/                          Persistent JSONL memory (per-developer, gitignored).
 │       ├── schema.md                    Record shape + read/write patterns
 │       └── append.sh                    Append helper called by every role at end-of-phase
@@ -79,7 +79,7 @@ repo-root/
 │       │   ├── frontend-reviewer.md       Diff review, returns structured verdict
 │       │   ├── test-runner.md             Runs Jest + Playwright, summarized output
 │       │   ├── prod-readiness.md          On-demand Security + SRE deep pass (haiku)
-│       │   └── verifier.md                Final tsc/eslint/build gate + 25-item checklist
+│       │   └── verifier.md                Final tsc/eslint/build gate + 10-bucket checklist
 │       └── skills/                      Skills (main-context convention reminders).
 │           ├── component-conventions/     React/TS/CSS/Axios/test playbook
 │           ├── pr-prep/                   Pre-push diff hygiene + gates
@@ -255,10 +255,10 @@ main transcript, which keeps the cache hot and the token budget healthy.
 | Subagent | Model | When to invoke | Returns |
 |---|---|---|---|
 | `repo-explorer` | haiku | Before writing code, when you need to locate a file, find usages, or surface a convention example | Prioritized path list with one-line rationales |
-| `frontend-reviewer` | sonnet | After the Implementer reports changed files | CRITICAL / RECOMMENDED / OPTIONAL / Positives / Verdict (with baked-in Security + SRE basics) |
-| `test-runner` | sonnet | After implementation, before the verifier gate | Pass/fail counts, failed test names, one-line cause, repro command |
+| `frontend-reviewer` | sonnet | Explicit-invoke via `/review` — after the Implementer reports changed files | CRITICAL / RECOMMENDED / OPTIONAL / Positives / Verdict (with baked-in Security + SRE basics) |
+| `test-runner` | haiku | After implementation, before the verifier gate | Pass/fail counts, failed test names, one-line cause, repro command |
 | `prod-readiness` | haiku | Between Reviewer and Verifier, **only** when the plan carries a `sensitive:*` tag | 10-item Security + SRE checklist + PASS / CONCERNS / BLOCK verdict |
-| `verifier` | sonnet | Before PR or merge — the final gate | Binary PASS/FAIL + prioritized issue list against a 25-item checklist; defaults to FAIL |
+| `verifier` | sonnet | Before PR or merge — the final gate | Binary PASS/FAIL + prioritized issue list against a 10-bucket checklist (FAIL expands sub-item detail); defaults to FAIL |
 
 ### How to activate them
 
@@ -366,8 +366,8 @@ For flag reference, output formats, error handling, and test instructions, see
 
 This is a generic frontend team template. To adapt it for your project:
 
-1. **CLAUDE.md** — Update the tech stack table, styling conventions, and "never do" list to match your project's actual stack and standards.
-2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 25-item checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
+1. **CLAUDE.md + `.agents/conventions.md`** — CLAUDE.md holds project identity + tech stack + communication rules; all coding conventions (TS, React, HTTP, styling, testing, security/SRE baselines) live in `.agents/conventions.md`. Update conventions.md to match your project's actual standards; CLAUDE.md only for stack/identity changes.
+2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 10-bucket checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
 3. **`.agents/pipeline.md`** — Tweak the orchestration if you want different phase boundaries, a stricter approval gate, or extra loop iterations.
 4. **Tool entry points** — `.claude/commands/*.md` and `.github/copilot-instructions.md` are thin wrappers that delegate to `.agents/`. Edit them only if your Claude Code or Copilot integration changes.
 5. **Test the pipeline** — Run `/pipeline` (or the Copilot paste workflow) on a small, real task from your backlog to validate the setup before team rollout.
@@ -386,7 +386,7 @@ This is a generic frontend team template. To adapt it for your project:
 | `.agents/roles/implementer.md` | Tech lead | Implementer identity, output-format, or RCC checklist refinements |
 | `.agents/roles/reviewer.md` | Tech lead | Review rubric, Security/SRE basics, and severity-level changes |
 | `.agents/roles/prod-readiness.md` | Tech lead | Security + SRE deep-pass checklist, sensitive-tag triggers |
-| `.agents/roles/verifier.md` | Tech lead | 25-item checklist or quality-gate changes |
+| `.agents/roles/verifier.md` | Tech lead | 10-bucket checklist or quality-gate changes |
 | `.agents/memory/schema.md` | Tech lead | JSONL record shape or read/write pattern changes |
 | `.agents/memory/append.sh` | Tech lead | Append helper — treat as versioned, bump plugin/repo when changed |
 | `.claude/commands/*.md` | Tech lead | Claude Code slash-command wiring (only when delegation pattern changes) |

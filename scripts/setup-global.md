@@ -28,19 +28,42 @@ let Claude Code write the settings itself. From any directory, run:
 
 ```bash
 # Register the marketplace at the user scope so every repo picks it up
-claude plugin marketplace add <your-owner>/frontend-eng-team --scope user
+claude plugin marketplace add https://github.com/<your-owner>/frontend-eng-team.git --scope user
 
 # Install the plugin at the user scope
 claude plugin install frontend-team@frontend-team-marketplace --scope user
 ```
 
-Replace `<your-owner>/frontend-eng-team` with the GitHub owner + repo where you
-published this. If you're developing against a local checkout, use a local path
-instead of a GitHub reference:
+Replace `<your-owner>` with the GitHub owner where you published this repo. The
+full HTTPS URL is the safe default because Claude Code does not require any SSH
+key setup — see the troubleshooting section if you get "SSH authentication
+failed" from a shorthand form.
+
+### Alternative — local checkout (for framework developers)
+
+If you are iterating on this repo directly, point the marketplace at your
+local checkout instead of GitHub. Every `git pull` (or local edit) is picked
+up immediately with no push required:
 
 ```bash
-claude plugin marketplace add ~/code/frontend-eng-team --scope user
+claude plugin marketplace add /absolute/path/to/frontend-eng-team --scope user
+claude plugin install frontend-team@frontend-team-marketplace --scope user
 ```
+
+This is also the fastest path when the team repo is ahead of `origin/main` and
+you want the unpushed changes.
+
+### Alternative — GitHub owner/repo shorthand (SSH required)
+
+```bash
+claude plugin marketplace add <your-owner>/frontend-eng-team --scope user
+```
+
+⚠️ Claude Code rewrites this shorthand to `git@github.com:<owner>/frontend-eng-team.git`
+and clones over SSH. It fails on machines without GitHub SSH keys configured.
+Prefer the HTTPS URL form above unless your SSH setup is already working.
+
+### Pinning a version
 
 To pin a specific version instead of tracking the latest:
 
@@ -174,6 +197,21 @@ instead of clobbering a customized `AGENTS.md`.
 ---
 
 ## Troubleshooting
+
+**`claude plugin marketplace add` fails with "SSH authentication failed" / "Permission denied (publickey)"**
+- You used the `<owner>/<repo>` shorthand, which Claude Code rewrites to
+  `git@github.com:...` (SSH). On a machine without GitHub SSH keys, it fails.
+- Fix: use the full HTTPS URL instead:
+  ```bash
+  claude plugin marketplace add https://github.com/<owner>/frontend-eng-team.git --scope user
+  ```
+- Or, if you have the repo checked out locally, point at the local path:
+  ```bash
+  claude plugin marketplace add /absolute/path/to/frontend-eng-team --scope user
+  ```
+- Long-term fix (only if you want the shorthand to work): generate an SSH key
+  (`ssh-keygen -t ed25519 -C "<your-email>"`), add the public key at
+  github.com/settings/keys, verify with `ssh -T git@github.com`.
 
 **`/plugin list` doesn't show frontend-team**
 - Re-check the marketplace registration: `claude plugin marketplace list`

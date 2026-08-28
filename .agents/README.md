@@ -20,7 +20,7 @@ multi-agent development pipeline:
   feedback with baked-in Security + SRE basics
 - **[prod-readiness.md](./roles/prod-readiness.md)** — Production Readiness
   role: deep Security + SRE pass, invoked only for plans tagged `sensitive:*`
-- **[verifier.md](./roles/verifier.md)** — Verifier role: 25-item quality gate
+- **[verifier.md](./roles/verifier.md)** — Verifier role: 10-bucket quality gate (FAIL expands sub-item detail)
 - **[pipeline.md](./pipeline.md)** — Pipeline orchestrator: runs all roles in
   sequence with approval gates, RCC loops, and JSONL memory hooks
 - **[memory/](./memory/)** — JSONL persistence for phase summaries;
@@ -90,7 +90,7 @@ REVIEWER → structured feedback
  ↓
 PROD-READINESS (only if sensitive:*) → PASS/CONCERNS/BLOCK
  ↓
-VERIFIER (25 items) → PASS or FAIL
+VERIFIER (10 buckets) → PASS or FAIL
  ↓ PASS → human approves merge
  ↓ FAIL → back to IMPLEMENTER (outer loop, max 3 iterations)
 ```

@@ -20,10 +20,10 @@ to a version.
 | Agent | Model | Tools | Purpose |
 |---|---|---|---|
 | `repo-explorer` | haiku | Read, Grep, Glob | Locate files/symbols, map a feature, find convention examples |
-| `frontend-reviewer` | sonnet | Read, Grep, Glob | Diff review against CLAUDE.md — CRITICAL/RECOMMENDED/OPTIONAL, now includes baked-in Security + SRE basics |
-| `test-runner` | sonnet | Read, Grep, Glob, Bash | Run Jest + Playwright, return summarized failures (not raw logs) |
+| `frontend-reviewer` | sonnet | Read, Grep, Glob | Diff review against `.agents/conventions.md` — CRITICAL/RECOMMENDED/OPTIONAL, includes baked-in Security + SRE basics. Explicit-invoke via `/review`. |
+| `test-runner` | haiku | Read, Grep, Glob, Bash | Run Jest + Playwright, return summarized failures (not raw logs) |
 | `prod-readiness` | haiku | Read, Grep, Glob | On-demand Security + SRE deep pass. Fires **only** when the plan carries a `sensitive:*` tag. Returns 10-item checklist + PASS/CONCERNS/BLOCK verdict |
-| `verifier` | sonnet | Read, Grep, Glob, Bash | Final gate — `tsc`/`eslint`/`vite build` + **25-item** PASS/FAIL checklist (adds 5 Security+SRE gates on top of the original 20) |
+| `verifier` | sonnet | Read, Grep, Glob, Bash | Final gate — `tsc`/`eslint`/`vite build` + **10-bucket** PASS/FAIL checklist (plan coverage, tooling, conventions, tests, constraints+structure, PR size, a11y, perf, production+security/SRE, prod-readiness handoff). FAIL expands sub-item detail. |
 
 ### Why this split
 
@@ -67,8 +67,9 @@ orchestrator routes correctly and the cached prefix stays lean.
 - Bump the version on every change. Pin distributions with a git ref or SHA so
   teams upgrade deliberately.
 - Current: **0.2.0** — adds `prod-readiness` subagent, `pm-clarify` skill,
-  `loop-engineering` skill, and 5 Security+SRE gates in the verifier
-  (20 → 25 items).
+  `loop-engineering` skill, 5 Security+SRE gates in the verifier, and a
+  post-0.2 consolidation that collapsed the verifier's 25 items into 10 buckets
+  (same coverage, FAIL expands sub-item detail).
 
 ## Install
 

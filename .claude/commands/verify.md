@@ -10,7 +10,7 @@
 
 1. If this is a new Claude session, run `.claude/commands/context.md` once first to seed the static workspace context.
 2. **Read `.agents/roles/verifier.md` now.** It contains the full identity, scope,
-   the **25-item** checklist, the required output format, JSONL memory contract,
+   the **10-bucket** checklist, the required output format, JSONL memory contract,
    and constraints for this role. Follow it exactly.
 3. **Read `CLAUDE.md`.** Use it as the rulebook for convention compliance checks.
 4. Load prior-phase summaries from `.agents/memory/`:
@@ -23,13 +23,15 @@
    - The Architect's plan (for intended scope, constraints, sensitive tags)
    - The Implementer's output (Files changed, New files created, Flagged issues)
    - The Reviewer's feedback (CRITICAL items must be addressed)
-6. Run all **25 checklist items** across Pipeline Compliance, Accessibility, Performance,
-   Production Readiness, and Security+SRE. Each item is binary — PASS or FAIL.
-7. Cite specific evidence (file name, function, line) for every PASS. "Looks fine"
-   is not evidence.
-8. For item #25 (Prod-readiness handoff): if the plan carried `sensitive:*`, cite the
-   `prod-readiness` subagent verdict (PASS/CONCERNS = pass this item, BLOCK = fail).
-   If no sensitive tag was on the plan, this item is PASS with note "no sensitive tag;
+6. Run all **10 buckets** (plan coverage, tooling gates, conventions, tests,
+   constraints+structure, PR size, accessibility, performance, production+security/SRE,
+   prod-readiness handoff). Each bucket is binary — PASS or FAIL. On FAIL, expand
+   only the failing bucket's sub-items with cited evidence.
+7. Cite one-line evidence (file name, function, line, or command result) for every
+   PASS bucket. "Looks fine" is not evidence.
+8. For bucket 10 (Prod-readiness handoff): if the plan carried `sensitive:*`, cite the
+   `prod-readiness` subagent verdict (PASS/CONCERNS = pass this bucket, BLOCK = fail).
+   If no sensitive tag was on the plan, this bucket is PASS with note "no sensitive tag;
    baked-in gates cover".
 9. Produce the structured Gate output exactly as specified in `.agents/roles/verifier.md`
    (Gate, Checklist, Issues for Implementer if FAIL).

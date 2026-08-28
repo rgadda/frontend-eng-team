@@ -332,11 +332,13 @@ Chat — this loads `.github/prompts/verify.prompt.md`.)*
 Instructions:
 - Load plan + implementation + review + (if run) prod-readiness summaries from
   `.agents/memory/`.
-- Run the full **25-item** checklist across Pipeline, Accessibility, Performance,
-  Production Readiness, and Security+SRE.
-- Cite specific evidence for every PASS/FAIL — file name, function, line.
-- Item #25 (Prod-readiness handoff): if the plan was sensitive, evidence is the
-  prod-readiness verdict; if not sensitive, PASS by default with note.
+- Run the full **10-bucket** checklist (plan coverage, tooling gates,
+  conventions, tests, constraints+structure, PR size, accessibility,
+  performance, production+security/SRE, prod-readiness handoff).
+- Cite one-line evidence for every PASS bucket. On FAIL, expand only the
+  failing bucket's sub-items with `file:line` citations.
+- Bucket 10 (Prod-readiness handoff): if the plan was sensitive, evidence is
+  the prod-readiness verdict; if not sensitive, PASS by default with note.
 - Produce Gate: PASS or FAIL with full evidence.
 - Append one JSONL record to `.agents/memory/verifications.jsonl`.
 
@@ -359,7 +361,7 @@ If Phase 4 Gate is **FAIL**:
   addressed.
 - Re-run Phase 3.5 (Prod-Readiness) only if it originally ran and the diff
   touched files it flagged.
-- Re-run Phase 4 (Verifier) — full 25-item checklist.
+- Re-run Phase 4 (Verifier) — full 10-bucket checklist.
 - Repeat until Gate is PASS or you have looped 3 times.
 
 If after 3 outer loops the Gate is still FAIL, stop and print:
@@ -408,7 +410,7 @@ budget:
 
 After the sweep, re-run Phase 3 (Reviewer, focused on whether the
 RECOMMENDED items are addressed and no new CRITICALs were introduced)
-and Phase 4 (Verifier, full 25-item checklist). The sweep + its
+and Phase 4 (Verifier, full 10-bucket checklist). The sweep + its
 re-review + its re-verify count as **one** outer loop iteration against
 the 3-iteration cap.
 
