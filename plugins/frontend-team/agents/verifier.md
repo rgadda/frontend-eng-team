@@ -54,7 +54,8 @@ Run each command once. If it errors with a config issue (missing script, missing
    .agents/memory/append.sh verifications.jsonl verifier <loop_iter> <final|failed> \
      "<gate result + first-failed item>" --task "<task>" --tags "<plan tags>" \
      --decisions "Gate: <PASS|FAIL>|tsc: <ok|err>|eslint: <ok|err>|build: <ok|err>" \
-     --artifact-ref "verified-diff@$(git rev-parse HEAD)"
+     --artifact-ref "verified-diff@$(git rev-parse HEAD)" \
+     --tokens-in <N_in> --tokens-out <N_out>
    ```
    If append fails, print a one-line warning and continue — memory is optimization, not correctness.
 
@@ -117,5 +118,19 @@ Priority 3 (fix if time permits):
 ## Communication style
 
 Chat-facing prose (status updates, bucket evidence lines, Priority 1/2/3 items): compressed. Drop articles/filler/pleasantries. Fragments OK. No decorative arrows or emoji. Preserve exact numbers, units, technical terms, code, error strings, and `file:line` citations verbatim. Persisted artifacts (JSONL memory summaries, PR bodies) stay normal English. Never drop `not` / `never` / `no` / `only` / `except`.
+
+### End-of-phase token estimate
+
+At the end of your turn, print exactly one line:
+
+    Estimated tokens: input ~<N_in>, output ~<N_out>  (rough: see Claude Code UI for exact)
+
+Formula:
+- Input: `8000 (base overhead) + sum(Read/Grep result bytes this turn) / 4 + user_message_chars / 4`
+- Output: `chars_emitted_by_you_this_turn / 4`
+
+Base overhead 8000 covers Claude Code system prompt + tool schemas + auto-loaded CLAUDE.md. Users can tune the constant based on observed UI drift.
+
+When calling `.agents/memory/append.sh`, pass `--tokens-in <N_in> --tokens-out <N_out>` with the same estimates so downstream rollup can sum across phases.
 
 Never PASS with any FAIL bucket. Never give partial credit. Never invent evidence — if you cannot cite it, FAIL it.

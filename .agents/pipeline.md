@@ -370,6 +370,30 @@ If after 3 outer loops the Gate is still FAIL, stop and print:
 PIPELINE STALLED
 Outer loop limit reached (3 iterations). Human intervention required.
 Summary of last Verifier output above.
+Cumulative estimated tokens: input ~<TOTAL_IN>, output ~<TOTAL_OUT> across <N> JSONL records on this branch (rough; UI is authoritative).
+```
+
+The orchestrator (not the human) runs the shell block below and substitutes
+the numbers into the printed message. Compute the rollup by summing
+`tokens_in` and `tokens_out` across every JSONL record for the current branch:
+
+```bash
+BR="$(git rev-parse --abbrev-ref HEAD)"
+{ for f in prd plans implementations reviews prod_readiness verifications; do
+    grep "\"branch\":\"$BR\"" .agents/memory/$f.jsonl 2>/dev/null
+  done; } | python3 -c '
+import sys, json
+tin = tout = n = 0
+for line in sys.stdin:
+    try:
+        r = json.loads(line)
+    except Exception:
+        continue
+    tin  += r.get("tokens_in")  or 0
+    tout += r.get("tokens_out") or 0
+    n    += 1
+print(f"input ~{tin}, output ~{tout} across {n} records")
+' || echo "(rollup unavailable — python3 not found)"
 ```
 
 If Phase 4 Gate is **PASS**, do NOT print PIPELINE COMPLETE yet — first
@@ -425,11 +449,16 @@ If the post-sweep Verifier passes, print:
 
 ```
 PIPELINE COMPLETE
-All 25 checks passed. Ready for human review.
+All 10 buckets passed. Ready for human review.
 Summary of changes: [one paragraph]
 Sensitive tags handled: [list, or "none"]
 RECOMMENDED items swept: [N of M — list overflow items if any]
+Cumulative estimated tokens: input ~<TOTAL_IN>, output ~<TOTAL_OUT> across <N> JSONL records on this branch (rough; UI is authoritative).
 ```
+
+Compute the rollup with the same shell block shown under PIPELINE STALLED
+above — sum `tokens_in` and `tokens_out` across every JSONL record for the
+current branch and substitute into the message.
 
 After the completion message, remind the user that `branch-plan.md` (and, for
 features, `branch-prd.md`) at the project root are good sources for the PR

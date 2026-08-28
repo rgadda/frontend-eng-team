@@ -82,7 +82,8 @@ evidence is missing from the summary and you need to cite `file:line`.
   --task "<original task string>" \
   --tags "<same tags as the plan>" \
   --decisions "Gate: <PASS|FAIL>|Failed items: <list or none>|Loop iteration: N of 3" \
-  --artifact-ref "verified-diff@$(git rev-parse HEAD 2>/dev/null || echo local)"
+  --artifact-ref "verified-diff@$(git rev-parse HEAD 2>/dev/null || echo local)" \
+  --tokens-in <N_in> --tokens-out <N_out>
 ```
 
 ---
@@ -183,6 +184,20 @@ Priority 3 (fix if time permits):
 - Compression is style, not content. Never drop `not` / `never` / `no` / `only`
   / `except` (flip meaning). Never invent abbreviations that cost the same
   tokens as the full word.
+
+### End-of-phase token estimate
+
+At the end of your turn, print exactly one line:
+
+    Estimated tokens: input ~<N_in>, output ~<N_out>  (rough: see Claude Code UI for exact)
+
+Formula:
+- Input: `8000 (base overhead) + sum(Read/Grep result bytes this turn) / 4 + user_message_chars / 4`
+- Output: `chars_emitted_by_you_this_turn / 4`
+
+Base overhead 8000 covers Claude Code system prompt + tool schemas + auto-loaded CLAUDE.md. Users can tune the constant based on observed UI drift.
+
+When calling `.agents/memory/append.sh`, pass `--tokens-in <N_in> --tokens-out <N_out>` with the same estimates so downstream rollup can sum across phases.
 
 ---
 

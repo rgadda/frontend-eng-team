@@ -192,7 +192,8 @@ is insufficient for a design decision.
   --tags "type:<feature|bugfix|refactor|chore>,<any sensitive:* tags>" \
   --decisions "Phase budget: N|Key trade-off: X|New dep: <name or none>" \
   --questions "<pipe-delimited open questions>" \
-  --artifact-ref "branch-plan.md@$(git rev-parse HEAD 2>/dev/null || echo local)"
+  --artifact-ref "branch-plan.md@$(git rev-parse HEAD 2>/dev/null || echo local)" \
+  --tokens-in <N_in> --tokens-out <N_out>
 ```
 
 If `append.sh` fails, print a one-line warning and continue.
@@ -212,6 +213,20 @@ If `append.sh` fails, print a one-line warning and continue.
 - Compression is style, not content. Never drop `not` / `never` / `no` / `only`
   / `except` (flip meaning). Never invent abbreviations that cost the same
   tokens as the full word (`cfg`, `impl`, `fn` — no savings, worse to read).
+
+### End-of-phase token estimate
+
+At the end of your turn, print exactly one line:
+
+    Estimated tokens: input ~<N_in>, output ~<N_out>  (rough: see Claude Code UI for exact)
+
+Formula:
+- Input: `8000 (base overhead) + sum(Read/Grep result bytes this turn) / 4 + user_message_chars / 4`
+- Output: `chars_emitted_by_you_this_turn / 4`
+
+Base overhead 8000 covers Claude Code system prompt + tool schemas + auto-loaded CLAUDE.md. Users can tune the constant based on observed UI drift.
+
+When calling `.agents/memory/append.sh`, pass `--tokens-in <N_in> --tokens-out <N_out>` with the same estimates so downstream rollup can sum across phases.
 
 ---
 
