@@ -12,6 +12,15 @@ carries a `sensitive:*` tag. Every role runs a bounded Refine-Critique-Converge
 inner loop, and every phase appends a JSONL summary to `.agents/memory/` so
 downstream phases read a paragraph instead of re-parsing full artifacts.
 
+For small, non-sensitive changes (≤200 LOC / ≤3 files), a **lite variant**
+runs Implementer → Reviewer only via `/pipeline-lite` — skipping Architect
+and Verifier for roughly 55% lower token cost. Two dedicated lite role files
+(`implementer-lite.md` + `reviewer-lite.md`) hold the compressed contracts,
+activated directly by `pipeline-lite.md`, so lite-mode sub-agents load only
+the compact variant (not the full base contracts). A hard entry gate rejects
+any task with sensitive keywords (auth, payments, PII, security) so lite mode
+fails closed on the wrong tasks. See **[Usage patterns](#usage-patterns)** for the decision tree.
+
 ---
 
 ## Quick setup
@@ -44,13 +53,16 @@ repo-root/
 ├── .agents/                           <- Canonical role definitions (source of truth).
 │   ├── README.md                        Overview of how the roles are organized.
 │   ├── pipeline.md                      Orchestrator: phases, approval gates, RCC, loop logic.
+│   ├── pipeline-lite.md                 Lite orchestrator: Implementer → Reviewer only, hard sensitivity gate.
 │   ├── roles/
 │   │   ├── pm.md                        PM role — features only (skipped for bug/refactor/chore/docs)
 │   │   ├── architect.md                 Architect role contract (with RCC self-critique loop)
 │   │   ├── implementer.md               Implementer role contract (with RCC self-critique loop)
+│   │   ├── implementer-lite.md          Implementer role — Lite Mode variant (used by /pipeline-lite)
 │   │   ├── reviewer.md                  Reviewer role contract (with baked-in Security + SRE basics)
+│   │   ├── reviewer-lite.md             Reviewer role — Lite Mode variant (used by /pipeline-lite)
 │   │   ├── prod-readiness.md            Prod-Readiness role — conditional (sensitive:* plans only)
-│   │   └── verifier.md                  Verifier role contract (25-item checklist)
+│   │   └── verifier.md                  Verifier role contract (10-bucket checklist)
 │   └── memory/                          Persistent JSONL memory (per-developer, gitignored).
 │       ├── schema.md                    Record shape + read/write patterns
 │       └── append.sh                    Append helper called by every role at end-of-phase
@@ -63,7 +75,8 @@ repo-root/
 │   │   ├── implement.md                 /implement         → reads .agents/roles/implementer.md
 │   │   ├── review.md                    /review            → reads .agents/roles/reviewer.md
 │   │   ├── verify.md                    /verify            → reads .agents/roles/verifier.md
-│   │   └── pipeline.md                  /pipeline <task>   → reads .agents/pipeline.md
+│   │   ├── pipeline.md                  /pipeline <task>       → reads .agents/pipeline.md
+│   │   └── pipeline-lite.md             /pipeline-lite <task>  → reads .agents/pipeline-lite.md (small non-sensitive changes)
 │   └── settings.json                  <- Registers the local plugin marketplace +
 │                                         auto-enables the frontend-team plugin.
 │
@@ -79,7 +92,7 @@ repo-root/
 │       │   ├── frontend-reviewer.md       Diff review, returns structured verdict
 │       │   ├── test-runner.md             Runs Jest + Playwright, summarized output
 │       │   ├── prod-readiness.md          On-demand Security + SRE deep pass (haiku)
-│       │   └── verifier.md                Final tsc/eslint/build gate + 25-item checklist
+│       │   └── verifier.md                Final tsc/eslint/build gate + 10-bucket checklist
 │       └── skills/                      Skills (main-context convention reminders).
 │           ├── component-conventions/     React/TS/CSS/Axios/test playbook
 │           ├── pr-prep/                   Pre-push diff hygiene + gates
@@ -112,9 +125,9 @@ The role definitions are the same across every tool — only the activation mech
 
 `CLAUDE.md` is auto-loaded at session start, so project rules apply to every conversation.
 Slash commands in `.claude/commands/` become `/pm`, `/pm-clarify`, `/architect`,
-`/implement`, `/review`, `/verify`, and `/pipeline`. Each command file
-imperatively reads its matching `.agents/roles/*.md` (or `.agents/pipeline.md`
-for the orchestrator) and follows it.
+`/implement`, `/review`, `/verify`, `/pipeline`, and `/pipeline-lite`. Each command
+file imperatively reads its matching `.agents/roles/*.md` (or `.agents/pipeline.md`
+/ `.agents/pipeline-lite.md` for the orchestrators) and follows it.
 
 ### GitHub Copilot in VS Code (paste-driven)
 
@@ -216,7 +229,43 @@ the plan.
 /verify
 ```
 
-### Quick implementation (for small, low-risk tasks)
+### Lite pipeline (for small, non-sensitive changes)
+
+```
+/pipeline-lite Add a loading spinner to the SettingsPanel while user data is fetching
+```
+
+Runs Implementer → Reviewer only. Skips PM, Architect, Verifier, prod-readiness,
+approval gates, and the outer FAIL loop. Target run cost: ≤25K tokens end-to-end
+(vs. ~50–60K for the full pipeline).
+
+**Hard entry gate:** the orchestrator refuses to run if the task text contains
+sensitive keywords (auth, login, token, password, payment, PII, sanitiz,
+webhook, cookie, etc.) or looks like a real feature. Reply `override` to
+force lite mode anyway; recommended path is `/pipeline` for anything the
+gate flags.
+
+**Verdict handling:**
+- Reviewer `APPROVE` → `LITE PIPELINE COMPLETE` with cost rollup.
+- Reviewer `REQUEST CHANGES` → four-choice menu: `fix` (re-run Implementer-lite
+  with the CRITICALs as new spec, cap 2 iterations), `escalate` (stop; re-run
+  with `/pipeline <original task>` for full Verifier gate), `merge` (accept
+  and merge anyway; logged as `lite:true,override:true`), `abort`.
+
+### Full vs. lite — which one when
+
+| Situation | Use |
+|---|---|
+| New feature with user-facing behavior | `/pipeline` |
+| Sensitive change (auth, payments, PII, security, reliability) | `/pipeline` — always |
+| Refactor touching multiple modules or a Context / hook / effect / portal | `/pipeline` |
+| Change > 200 LOC or > 3 files | `/pipeline` |
+| Small bugfix, config tweak, copy change, one-file typo | `/pipeline-lite` |
+| CSS-only change, docs update | `/pipeline-lite` |
+| Well-established pattern, low blast radius | `/pipeline-lite` |
+| Throwaway spike or personal exploration | Neither — just `/implement` directly |
+
+### Quick implementation (for one-file, one-step tasks)
 
 ```
 /implement Fix the TypeScript error in src/features/settings/SettingsPanel.tsx
@@ -255,10 +304,10 @@ main transcript, which keeps the cache hot and the token budget healthy.
 | Subagent | Model | When to invoke | Returns |
 |---|---|---|---|
 | `repo-explorer` | haiku | Before writing code, when you need to locate a file, find usages, or surface a convention example | Prioritized path list with one-line rationales |
-| `frontend-reviewer` | sonnet | After the Implementer reports changed files | CRITICAL / RECOMMENDED / OPTIONAL / Positives / Verdict (with baked-in Security + SRE basics) |
-| `test-runner` | sonnet | After implementation, before the verifier gate | Pass/fail counts, failed test names, one-line cause, repro command |
+| `frontend-reviewer` | sonnet | Explicit-invoke via `/review` — after the Implementer reports changed files | CRITICAL / RECOMMENDED / OPTIONAL / Positives / Verdict (with baked-in Security + SRE basics) |
+| `test-runner` | haiku | After implementation, before the verifier gate | Pass/fail counts, failed test names, one-line cause, repro command |
 | `prod-readiness` | haiku | Between Reviewer and Verifier, **only** when the plan carries a `sensitive:*` tag | 10-item Security + SRE checklist + PASS / CONCERNS / BLOCK verdict |
-| `verifier` | sonnet | Before PR or merge — the final gate | Binary PASS/FAIL + prioritized issue list against a 25-item checklist; defaults to FAIL |
+| `verifier` | sonnet | Before PR or merge — the final gate | Binary PASS/FAIL + prioritized issue list against a 10-bucket checklist (FAIL expands sub-item detail); defaults to FAIL |
 
 ### How to activate them
 
@@ -366,8 +415,8 @@ For flag reference, output formats, error handling, and test instructions, see
 
 This is a generic frontend team template. To adapt it for your project:
 
-1. **CLAUDE.md** — Update the tech stack table, styling conventions, and "never do" list to match your project's actual stack and standards.
-2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 25-item checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
+1. **CLAUDE.md + `.agents/conventions.md`** — CLAUDE.md holds project identity + tech stack + communication rules; all coding conventions (TS, React, HTTP, styling, testing, security/SRE baselines) live in `.agents/conventions.md`. Update conventions.md to match your project's actual standards; CLAUDE.md only for stack/identity changes.
+2. **`.agents/roles/*.md`** — The role contracts are stack-agnostic but the Verifier's 10-bucket checklist is opinionated. Adjust it if your project has specific compliance requirements (e.g., i18n, additional accessibility levels).
 3. **`.agents/pipeline.md`** — Tweak the orchestration if you want different phase boundaries, a stricter approval gate, or extra loop iterations.
 4. **Tool entry points** — `.claude/commands/*.md` and `.github/copilot-instructions.md` are thin wrappers that delegate to `.agents/`. Edit them only if your Claude Code or Copilot integration changes.
 5. **Test the pipeline** — Run `/pipeline` (or the Copilot paste workflow) on a small, real task from your backlog to validate the setup before team rollout.
@@ -381,12 +430,15 @@ This is a generic frontend team template. To adapt it for your project:
 | `CLAUDE.md` | Tech lead | Stack changes, new conventions, new dependencies |
 | `AGENTS.md` | Tech lead | Multi-tool entry-point updates (rare) |
 | `.agents/pipeline.md` | Tech lead | Phase, approval-gate, RCC, or loop-logic changes |
+| `.agents/pipeline-lite.md` | Tech lead | Lite-orchestrator changes: sensitivity keywords, verdict menu, cost thresholds, entry gate |
 | `.agents/roles/pm.md` | Tech lead | PM identity, PRD format, skip-rule refinements |
 | `.agents/roles/architect.md` | Tech lead | Architect identity, output-format, sensitive-tag list, or RCC checklist refinements |
 | `.agents/roles/implementer.md` | Tech lead | Implementer identity, output-format, or RCC checklist refinements |
+| `.agents/roles/implementer-lite.md` | Tech lead | Lite-mode Implementer overrides — keep aligned with base `implementer.md` when adding new rules |
 | `.agents/roles/reviewer.md` | Tech lead | Review rubric, Security/SRE basics, and severity-level changes |
+| `.agents/roles/reviewer-lite.md` | Tech lead | Lite-mode Reviewer overrides — keep aligned with base `reviewer.md` when adding new rules |
 | `.agents/roles/prod-readiness.md` | Tech lead | Security + SRE deep-pass checklist, sensitive-tag triggers |
-| `.agents/roles/verifier.md` | Tech lead | 25-item checklist or quality-gate changes |
+| `.agents/roles/verifier.md` | Tech lead | 10-bucket checklist or quality-gate changes |
 | `.agents/memory/schema.md` | Tech lead | JSONL record shape or read/write pattern changes |
 | `.agents/memory/append.sh` | Tech lead | Append helper — treat as versioned, bump plugin/repo when changed |
 | `.claude/commands/*.md` | Tech lead | Claude Code slash-command wiring (only when delegation pattern changes) |

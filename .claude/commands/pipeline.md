@@ -25,7 +25,7 @@ Follow that file for:
 - Phase 2 (Implementer) with RCC self-critique loop
 - Phase 3 (Reviewer) with baked-in Security + SRE basics
 - Phase 3.5 (Prod-Readiness) — fires only when the plan carries a `sensitive:*` tag
-- Phase 4 (Verifier) — full 25-item checklist
+- Phase 4 (Verifier) — full 10-bucket checklist (FAIL expands sub-item detail)
 - Outer loop logic (FAIL → Implementer → re-verify, capped at 3 iterations)
 - JSONL memory contract at every phase (`.agents/memory/*.jsonl`)
 

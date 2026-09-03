@@ -11,7 +11,20 @@
       "Bash(claude plugin *)",
       "Bash(echo \"---EXIT=$?\")",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(awk *)",
+      "Bash(chmod +x /Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team/.agents/memory/append.sh)",
+      "Bash(/Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team/.agents/memory/append.sh plans.jsonl architect 1 final \"sanity test for append helper\" --task \"sanity test\" --tags \"type:chore\" --decisions \"one|two\" --artifact-ref \"branch-plan.md@abc\")",
+      "Bash(chmod +x /Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team/scripts/ft-bootstrap.sh)",
+      "Bash(bash -n /Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team/scripts/ft-bootstrap.sh)",
+      "Bash(python3 -c \"import json; json.load\\(open\\('/Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team/scripts/global-settings.example.json'\\)\\)\")",
+      "Bash(grep -v \"^\\\\s*$\")",
+      "Bash(ssh -T git@github.com)",
+      "Bash(git -C /Users/rajivgadda/Documents/workspace/claude-code/ai_dev_workflow_consulting/frontend-eng-team rev-parse --abbrev-ref HEAD)",
+      "Bash(.agents/memory/append.sh plans.jsonl architect 1 final 'Phase 1 of 5-phase token-optimization program: trim identity prose in 5 role files \\(~440 LOC delta, net -220\\). Preserves behavioral contracts and framework bullet names; cuts inspirational framing only. Estimated savings ~15-20k tokens per pipeline run. Multi-phase plan authorized 500 LOC budget bump for docs-only change.' --task 'what are the ways to optimize token usage for users using these pipeline, architect, implement and other skills/agents? I would like to reduce the token usage but to still have same or better performance' --tags type:refactor --decisions 'Phase budget: 5 phases|Phase 1: trim identity prose in 5 role files|Budget bump: 500 LOC authorized for docs-only|No new deps|Framework bullet names preserved' --questions 'Confirm 500-LOC budget bump or split Phase 1 in two|Keep or drop framework bullet names in trimmed identity blocks|Run Phases 2-5 sequentially or menu-per-phase' --artifact-ref branch-plan.md@__CMDSUB_OUTPUT__)",
+      "Bash(python3 -c \"import sys,json; r=json.loads\\(sys.stdin.read\\(\\)\\); print\\('iter',r['iteration'],'status',r['status']\\); print\\('summary:',r['summary'][:200]\\)\")",
+      "Bash(grep \"\\\\\"branch\\\\\":\\\\\"$\\(git rev-parse --abbrev-ref HEAD\\)\\\\\"\" .agents/memory/plans.jsonl)",
+      "Bash(python3 -c \"import sys,json; r=json.loads\\(sys.stdin.read\\(\\)\\); print\\('prior main-branch plan iter=',r.get\\('iteration'\\),'status=',r.get\\('status'\\)\\)\")"
     ]
   }
 }

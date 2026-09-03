@@ -332,11 +332,13 @@ Chat — this loads `.github/prompts/verify.prompt.md`.)*
 Instructions:
 - Load plan + implementation + review + (if run) prod-readiness summaries from
   `.agents/memory/`.
-- Run the full **25-item** checklist across Pipeline, Accessibility, Performance,
-  Production Readiness, and Security+SRE.
-- Cite specific evidence for every PASS/FAIL — file name, function, line.
-- Item #25 (Prod-readiness handoff): if the plan was sensitive, evidence is the
-  prod-readiness verdict; if not sensitive, PASS by default with note.
+- Run the full **10-bucket** checklist (plan coverage, tooling gates,
+  conventions, tests, constraints+structure, PR size, accessibility,
+  performance, production+security/SRE, prod-readiness handoff).
+- Cite one-line evidence for every PASS bucket. On FAIL, expand only the
+  failing bucket's sub-items with `file:line` citations.
+- Bucket 10 (Prod-readiness handoff): if the plan was sensitive, evidence is
+  the prod-readiness verdict; if not sensitive, PASS by default with note.
 - Produce Gate: PASS or FAIL with full evidence.
 - Append one JSONL record to `.agents/memory/verifications.jsonl`.
 
@@ -359,7 +361,7 @@ If Phase 4 Gate is **FAIL**:
   addressed.
 - Re-run Phase 3.5 (Prod-Readiness) only if it originally ran and the diff
   touched files it flagged.
-- Re-run Phase 4 (Verifier) — full 25-item checklist.
+- Re-run Phase 4 (Verifier) — full 10-bucket checklist.
 - Repeat until Gate is PASS or you have looped 3 times.
 
 If after 3 outer loops the Gate is still FAIL, stop and print:
@@ -368,6 +370,30 @@ If after 3 outer loops the Gate is still FAIL, stop and print:
 PIPELINE STALLED
 Outer loop limit reached (3 iterations). Human intervention required.
 Summary of last Verifier output above.
+Cumulative estimated tokens: input ~<TOTAL_IN>, output ~<TOTAL_OUT> across <N> JSONL records on this branch (rough; UI is authoritative).
+```
+
+The orchestrator (not the human) runs the shell block below and substitutes
+the numbers into the printed message. Compute the rollup by summing
+`tokens_in` and `tokens_out` across every JSONL record for the current branch:
+
+```bash
+BR="$(git rev-parse --abbrev-ref HEAD)"
+{ for f in prd plans implementations reviews prod_readiness verifications; do
+    grep "\"branch\":\"$BR\"" .agents/memory/$f.jsonl 2>/dev/null
+  done; } | python3 -c '
+import sys, json
+tin = tout = n = 0
+for line in sys.stdin:
+    try:
+        r = json.loads(line)
+    except Exception:
+        continue
+    tin  += r.get("tokens_in")  or 0
+    tout += r.get("tokens_out") or 0
+    n    += 1
+print(f"input ~{tin}, output ~{tout} across {n} records")
+' || echo "(rollup unavailable — python3 not found)"
 ```
 
 If Phase 4 Gate is **PASS**, do NOT print PIPELINE COMPLETE yet — first
@@ -408,7 +434,7 @@ budget:
 
 After the sweep, re-run Phase 3 (Reviewer, focused on whether the
 RECOMMENDED items are addressed and no new CRITICALs were introduced)
-and Phase 4 (Verifier, full 25-item checklist). The sweep + its
+and Phase 4 (Verifier, full 10-bucket checklist). The sweep + its
 re-review + its re-verify count as **one** outer loop iteration against
 the 3-iteration cap.
 
@@ -423,11 +449,16 @@ If the post-sweep Verifier passes, print:
 
 ```
 PIPELINE COMPLETE
-All 25 checks passed. Ready for human review.
+All 10 buckets passed. Ready for human review.
 Summary of changes: [one paragraph]
 Sensitive tags handled: [list, or "none"]
 RECOMMENDED items swept: [N of M — list overflow items if any]
+Cumulative estimated tokens: input ~<TOTAL_IN>, output ~<TOTAL_OUT> across <N> JSONL records on this branch (rough; UI is authoritative).
 ```
+
+Compute the rollup with the same shell block shown under PIPELINE STALLED
+above — sum `tokens_in` and `tokens_out` across every JSONL record for the
+current branch and substitute into the message.
 
 After the completion message, remind the user that `branch-plan.md` (and, for
 features, `branch-prd.md`) at the project root are good sources for the PR

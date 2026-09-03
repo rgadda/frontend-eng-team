@@ -50,8 +50,9 @@ warrant the extra cost.
 - **Verdict:** PASS / CONCERNS / BLOCK
 
 ### [Verifier](./.agents/roles/verifier.md)
-- **Purpose:** Quality gate with a **25-point** checklist (Pipeline,
-  Accessibility, Performance, Production Readiness, Security+SRE)
+- **Purpose:** Quality gate with a **10-bucket** checklist (plan coverage, tooling gates,
+  conventions, tests, constraints+structure, PR size, accessibility, performance,
+  production+security/SRE, prod-readiness handoff). FAIL expands sub-item detail.
 - **Activation:** `/verify` in Claude Code, or load the role file into any other tool
 - **Key traits:** Evidence-based verification, production readiness
 
@@ -70,7 +71,7 @@ The full pipeline is orchestrated in [`.agents/pipeline.md`](./.agents/pipeline.
 5. **Phase 2 — Implementer:** executes the approved plan
 6. **Phase 3 — Reviewer:** provides feedback on the implementation
 7. **Phase 3.5 — Prod-Readiness:** Security + SRE deep pass — **only** if plan has `sensitive:*` tag
-8. **Phase 4 — Verifier:** runs the 25-item checklist for the final PASS/FAIL gate
+8. **Phase 4 — Verifier:** runs the 10-bucket checklist for the final PASS/FAIL gate
 9. **Outer loop:** on FAIL, return to the Implementer with a prioritized issue list (max 3 outer iterations)
 
 Every phase runs an RCC self-critique inner loop (max 3 iterations) and appends
@@ -114,7 +115,7 @@ Slash commands are wired to the canonical definitions:
 /architect [task]     # Architect role only
 /implement            # Execute the Architect's plan
 /review               # Review the Implementer's changes
-/verify               # Run the 25-point quality gate
+/verify               # Run the 10-bucket quality gate
 ```
 
 Each Claude Code command file in `.claude/commands/` reads the matching `.agents/roles/*.md`
@@ -144,6 +145,7 @@ read `CLAUDE.md` for project constraints before producing code.
 .agents/                          ← Canonical role definitions (source of truth)
   README.md                       (overview and usage guide)
   pipeline.md                     (orchestrator — phases, gates, RCC, JSONL hooks)
+  conventions.md                  (canonical non-negotiables — TS/React/HTTP/styling/testing/a11y/perf/security)
   roles/
     pm.md                         (new — features only)
     architect.md
@@ -169,9 +171,9 @@ plugins/frontend-team/            ← Versioned subagents + skills
   agents/
     repo-explorer.md              (haiku)
     frontend-reviewer.md          (sonnet)
-    test-runner.md                (sonnet)
-    verifier.md                   (sonnet, 25-item checklist)
-    prod-readiness.md             (new — haiku, conditional)
+    test-runner.md                (haiku)
+    verifier.md                   (sonnet, 10-bucket checklist)
+    prod-readiness.md             (haiku, conditional)
   skills/
     component-conventions/
     pr-prep/
@@ -190,6 +192,9 @@ branch-plan.md                    ← Transient plan artifact (gitignored)
 
 ## Handoff flow
 
+All roles enforce `.agents/conventions.md` (loaded once as canonical
+non-negotiables; subagents that do not inherit CLAUDE.md load it explicitly).
+
 ```
 Task
  ↓ [classify: type + sensitivity]
@@ -205,7 +210,7 @@ REVIEWER (baked-in Security/SRE basics) → structured feedback
 PROD-READINESS (only if plan tagged sensitive:*) → PASS/CONCERNS/BLOCK
  ↓ BLOCK → back to IMPLEMENTER (counts against outer 3-iteration cap)
  ↓ PASS/CONCERNS ↓
-VERIFIER (25-item checklist) → PASS or FAIL
+VERIFIER (10-bucket checklist) → PASS or FAIL
  ↓ PASS → human approves merge
  ↓ FAIL → back to IMPLEMENTER (outer loop, max 3 iterations)
 ```
