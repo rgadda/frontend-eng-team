@@ -8,7 +8,7 @@ Relay is currently a template framework — security fixes apply to the `main` b
 
 **Please do not open a public issue for security vulnerabilities.**
 
-Use GitHub's [private vulnerability reporting](https://github.com/rgadda/relay/security/advisories/new) to send a report. Include:
+Use GitHub's [private vulnerability reporting](https://github.com/rgadda/frontend-eng-team/security/advisories/new) to send a report. Include:
 
 - A description of the vulnerability and its impact.
 - Steps to reproduce (minimal example preferred).

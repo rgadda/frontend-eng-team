@@ -4,7 +4,7 @@ Thanks for your interest in contributing. Relay is a thin, opinionated framework
 
 ## Ways to contribute
 
-- **Bug reports** — open an [issue](https://github.com/rgadda/relay/issues/new/choose) with a repro.
+- **Bug reports** — open an [issue](https://github.com/rgadda/frontend-eng-team/issues/new/choose) with a repro.
 - **Convention refinements** — propose edits to `.agents/conventions.md` with a short rationale (why the current rule is wrong or incomplete).
 - **Role / subagent / skill improvements** — PRs that sharpen an existing prompt, tighten an output format, or close a failure mode.
 - **New stack adapters** — port the pipeline to a non-React stack (backend, mobile) in a fork and submit a `docs/adapting.md` case study.
@@ -25,8 +25,8 @@ Thanks for your interest in contributing. Relay is a thin, opinionated framework
 ## Local development
 
 ```bash
-git clone https://github.com/rgadda/relay.git
-cd relay
+git clone https://github.com/rgadda/frontend-eng-team.git
+cd frontend-eng-team
 npm ci
 ```
 
@@ -82,4 +82,4 @@ Be kind. Be direct. Review the code, not the person. No preamble, no sycophancy 
 
 ## Questions
 
-Open a [Discussion](https://github.com/rgadda/relay/discussions) for design questions, or an [Issue](https://github.com/rgadda/relay/issues) for bugs.
+Open a [Discussion](https://github.com/rgadda/frontend-eng-team/discussions) for design questions, or an [Issue](https://github.com/rgadda/frontend-eng-team/issues) for bugs.

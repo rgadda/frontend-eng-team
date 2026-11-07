@@ -2,8 +2,10 @@
 
 > A six-role multi-agent pipeline for shipping frontend changes with AI assistance — tool-neutral, cache-efficient, and gated by humans at the right moments.
 
-[![CI](https://github.com/rgadda/relay/actions/workflows/ci.yml/badge.svg)](https://github.com/rgadda/relay/actions/workflows/ci.yml)
+[![CI](https://github.com/rgadda/frontend-eng-team/actions/workflows/ci.yml/badge.svg)](https://github.com/rgadda/frontend-eng-team/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+> **Note:** the GitHub repo slug is `frontend-eng-team` for historical reasons. The project name is **Relay**.
 
 ```mermaid
 flowchart LR
@@ -34,7 +36,7 @@ flowchart LR
 
 ```bash
 # Once per machine
-claude plugin marketplace add rgadda/relay --scope user
+claude plugin marketplace add rgadda/frontend-eng-team --scope user
 claude plugin install frontend-team@frontend-team-marketplace --scope user
 
 # Once per target repo

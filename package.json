@@ -5,13 +5,13 @@
   "description": "A six-role multi-agent pipeline for shipping frontend changes with AI assistance — tool-neutral, cache-efficient, human-gated.",
   "author": "Rajiv Gadda",
   "license": "MIT",
-  "homepage": "https://github.com/rgadda/relay#readme",
+  "homepage": "https://github.com/rgadda/frontend-eng-team#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rgadda/relay.git"
+    "url": "git+https://github.com/rgadda/frontend-eng-team.git"
   },
   "bugs": {
-    "url": "https://github.com/rgadda/relay/issues"
+    "url": "https://github.com/rgadda/frontend-eng-team/issues"
   },
   "keywords": [
     "claude-code",
