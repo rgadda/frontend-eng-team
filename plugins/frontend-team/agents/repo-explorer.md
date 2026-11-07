@@ -1,6 +1,6 @@
 ---
 name: repo-explorer
-description: Read-only codebase explorer. Use PROACTIVELY when the main session needs to locate files by pattern, map where a feature lives, find usages of an API/hook/component, or surface examples of an existing convention before writing new code. Returns a short prioritized path list with one-line rationales — never raw file dumps. Trigger keywords: "find", "where is", "locate", "show me examples of", "map the", "search for".
+description: 'Read-only codebase explorer. Use PROACTIVELY when the main session needs to locate files by pattern, map where a feature lives, find usages of an API/hook/component, or surface examples of an existing convention before writing new code. Returns a short prioritized path list with one-line rationales — never raw file dumps. Trigger keywords: "find", "where is", "locate", "show me examples of", "map the", "search for".'
 tools: Read, Grep, Glob
 model: haiku
 ---

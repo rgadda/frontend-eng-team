@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: Runs Jest unit tests and Playwright E2E tests and returns a focused failure summary — never raw logs. Use PROACTIVELY after the Implementer reports done, before the verifier gate, or when the user says "run tests", "run jest", "run playwright", "are tests green". Returns: pass/fail counts, failed test names with file:line and one-line cause, and the minimum command to reproduce locally.
+description: 'Runs Jest unit tests and Playwright E2E tests and returns a focused failure summary — never raw logs. Use PROACTIVELY after the Implementer reports done, before the verifier gate, or when the user says "run tests", "run jest", "run playwright", "are tests green". Returns: pass/fail counts, failed test names with file:line and one-line cause, and the minimum command to reproduce locally.'
 tools: Read, Grep, Glob, Bash
 model: haiku
 ---
