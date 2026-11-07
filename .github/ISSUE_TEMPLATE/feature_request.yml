@@ -1,0 +1,54 @@
+name: Feature request
+description: Propose a change to a role, subagent, skill, or framework behavior.
+title: "[feat] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Relay is deliberately thin. Before proposing a new role, phase, or subagent, check whether the goal can be met by editing an existing contract.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the pain point in concrete terms. "Nice-to-have" is not enough.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What exactly would change? Which file? What's the new output shape?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Why can't this be solved by editing an existing role or skill?
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Convention edit (.agents/conventions.md)
+        - Role contract edit
+        - New role (requires strong motivation)
+        - New subagent
+        - New skill
+        - Orchestrator change (pipeline.md / pipeline-lite.md)
+        - Tooling (CI, bootstrap script, metrics)
+        - Documentation
+    validations:
+      required: true
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Impact checklist
+      options:
+        - label: This change requires a plugin version bump.
+        - label: This change breaks the output format of an existing role / subagent.
+        - label: This change affects the cached prompt prefix (stable wording).
+        - label: This change can be gated behind a `sensitive:*` tag or lite-mode flag.

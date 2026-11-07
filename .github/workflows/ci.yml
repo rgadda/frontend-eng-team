@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  template-integrity:
+    name: Template integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required files exist and are non-empty
+        run: |
+          set -e
+          required=(
+            CLAUDE.md
+            AGENTS.md
+            LICENSE
+            README.md
+            CONTRIBUTING.md
+            SECURITY.md
+            .agents/conventions.md
+            .agents/pipeline.md
+            .agents/pipeline-lite.md
+            .agents/roles/pm.md
+            .agents/roles/architect.md
+            .agents/roles/implementer.md
+            .agents/roles/implementer-lite.md
+            .agents/roles/reviewer.md
+            .agents/roles/reviewer-lite.md
+            .agents/roles/prod-readiness.md
+            .agents/roles/verifier.md
+            .agents/memory/schema.md
+            .agents/memory/append.sh
+            .claude-plugin/marketplace.json
+            plugins/frontend-team/.claude-plugin/plugin.json
+            scripts/ft-bootstrap.sh
+            scripts/setup-global.md
+            docs/architecture.md
+            docs/subagents.md
+            docs/adapting.md
+            docs/diagrams.md
+          )
+          missing=0
+          for f in "${required[@]}"; do
+            if [ ! -s "$f" ]; then
+              echo "::error file=$f::missing or empty"
+              missing=1
+            fi
+          done
+          exit $missing
+
+      - name: Validate plugin manifest JSON
+        run: |
+          jq empty .claude-plugin/marketplace.json
+          jq empty plugins/frontend-team/.claude-plugin/plugin.json
+
+      - name: Shellcheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          severity: warning
+
+  lint-build:
+    name: Lint + build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

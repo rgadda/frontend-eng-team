@@ -1,7 +1,30 @@
 {
-  "name": "frontend-eng-team",
+  "name": "relay",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A six-role multi-agent pipeline for shipping frontend changes with AI assistance — tool-neutral, cache-efficient, human-gated.",
+  "author": "Rajiv Gadda",
+  "license": "MIT",
+  "homepage": "https://github.com/rgadda/frontend-eng-team#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rgadda/frontend-eng-team.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rgadda/frontend-eng-team/issues"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "ai-agents",
+    "multi-agent",
+    "frontend",
+    "react",
+    "typescript",
+    "developer-tools",
+    "ai-coding",
+    "agents-md"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,21 +40,21 @@
   },
   "devDependencies": {
     "@octokit/rest": "^21.0.2",
-    "@types/node": "^20.12.7",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@types/node": "^22.0.0",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "@typescript-eslint/parser": "^6.14.0",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^5.2.0",
     "commander": "^12.1.0",
     "eslint": "^8.55.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "tsx": "^4.19.0",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8",
-    "vitest": "^1.0.4",
-    "@testing-library/react": "^14.1.2",
-    "@testing-library/jest-dom": "^6.1.5"
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   }
 }
