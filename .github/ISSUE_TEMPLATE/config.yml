@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion / design question
+    url: https://github.com/rgadda/relay/discussions
+    about: Ask an open-ended question or propose a direction before filing an issue.
+  - name: Security vulnerability
+    url: https://github.com/rgadda/relay/security/advisories/new
+    about: Report a security vulnerability privately via GitHub security advisories.

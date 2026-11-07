@@ -1,7 +1,30 @@
 {
-  "name": "frontend-eng-team",
+  "name": "relay",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A six-role multi-agent pipeline for shipping frontend changes with AI assistance — tool-neutral, cache-efficient, human-gated.",
+  "author": "Rajiv Gadda",
+  "license": "MIT",
+  "homepage": "https://github.com/rgadda/relay#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rgadda/relay.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rgadda/relay/issues"
+  },
+  "keywords": [
+    "claude-code",
+    "claude-code-plugin",
+    "ai-agents",
+    "multi-agent",
+    "frontend",
+    "react",
+    "typescript",
+    "developer-tools",
+    "ai-coding",
+    "agents-md"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,6 +40,8 @@
   },
   "devDependencies": {
     "@octokit/rest": "^21.0.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
     "@types/node": "^20.12.7",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
@@ -30,8 +55,6 @@
     "tsx": "^4.19.0",
     "typescript": "^5.2.2",
     "vite": "^8.3.6",
-    "vitest": "^5.1.0",
-    "@testing-library/react": "^14.1.2",
-    "@testing-library/jest-dom": "^6.1.5"
+    "vitest": "^5.1.0"
   }
 }
