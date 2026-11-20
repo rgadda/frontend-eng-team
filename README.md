@@ -58,7 +58,7 @@ Full setup + troubleshooting: [scripts/setup-global.md](scripts/setup-global.md)
 | **Orchestrators** (`.agents/`) | `pipeline.md` (full) · `pipeline-lite.md` (small, non-sensitive changes) |
 | **Subagents** (`plugins/frontend-team/agents/`) | `repo-explorer` · `frontend-reviewer` · `test-runner` · `prod-readiness` · `verifier` |
 | **Skills** (`plugins/frontend-team/skills/`) | `component-conventions` · `pr-prep` · `pm-clarify` · `loop-engineering` |
-| **Metrics** (`scripts/`) | `collect-pr-metrics.ts` — before/after PR velocity report |
+| **Metrics** (`scripts/`) | `collect-pr-metrics.ts` — before/after PR velocity report · `claude-usage-report.py` — local Claude Code usage + leak-signal report |
 
 ## Usage
 
@@ -111,6 +111,7 @@ Stack-specific conventions live in [`.agents/conventions.md`](.agents/convention
 - [Diagrams](docs/diagrams.md) — canonical Mermaid source for every diagram
 - [Copilot paste workflow](.github/copilot-instructions.md) — phase-by-phase VS Code recipe
 - [PR metrics script](scripts/README.md) — portable CLI for before/after measurement
+- [Claude Code usage report](scripts/claude-usage-report.md) — local token spend, cache-hit ratio, and workflow leak signals
 - [Framework methodology](framework.md) — the deeper paper behind the pipeline
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
