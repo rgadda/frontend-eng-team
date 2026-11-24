@@ -34,6 +34,8 @@ flowchart LR
 
 ## Quick start
 
+### Claude Code (full pipeline — recommended)
+
 ```bash
 # Once per machine
 claude plugin marketplace add rgadda/frontend-eng-team --scope user
@@ -49,6 +51,16 @@ ft-bootstrap
 ```
 
 Full setup + troubleshooting: [scripts/setup-global.md](scripts/setup-global.md).
+
+### Skills only (any skills.sh-compatible agent)
+
+The four skills — `component-conventions`, `pr-prep`, `pm-clarify`, `loop-engineering` — also install as standalone [Agent Skills](https://agentskills.io) via [skills.sh](https://skills.sh), usable in Cursor, Copilot, Windsurf, Gemini, Cline, and any other skills-compatible agent:
+
+```bash
+npx skills add rgadda/frontend-eng-team
+```
+
+The subagents and the full pipeline require Claude Code.
 
 ## What's inside
 
