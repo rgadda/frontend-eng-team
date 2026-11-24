@@ -39,7 +39,7 @@ jobs:
             .agents/memory/schema.md
             .agents/memory/append.sh
             .claude-plugin/marketplace.json
-            plugins/frontend-team/.claude-plugin/plugin.json
+            .claude-plugin/plugin.json
             scripts/ft-bootstrap.sh
             scripts/setup-global.md
             docs/architecture.md
@@ -59,7 +59,7 @@ jobs:
       - name: Validate plugin manifest JSON
         run: |
           jq empty .claude-plugin/marketplace.json
-          jq empty plugins/frontend-team/.claude-plugin/plugin.json
+          jq empty .claude-plugin/plugin.json
 
       - name: Shellcheck
         uses: ludeeus/action-shellcheck@master

@@ -301,7 +301,7 @@ No sensitive:* tag on plan. Baked-in Reviewer + Verifier gates apply.
 ```
 
 If the plan is sensitive, invoke the `prod-readiness` subagent
-(`plugins/frontend-team/agents/prod-readiness.md`, haiku, read-only). It walks
+(`agents/prod-readiness.md`, haiku, read-only). It walks
 its own 10-item Security + SRE checklist and returns PASS / CONCERNS / BLOCK.
 
 Handling the verdict:

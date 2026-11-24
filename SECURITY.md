@@ -22,7 +22,7 @@ You should receive an acknowledgment within **72 hours**. We will keep you infor
 In scope:
 
 - The role contracts in `.agents/` (prompt injection vectors, role escape, unsafe default behavior).
-- The plugin assets in `plugins/frontend-team/` (subagent output handling, skill content).
+- The plugin assets `agents/` and `skills/` (subagent output handling, skill content).
 - The bootstrap script `scripts/ft-bootstrap.sh` (file system manipulation, permission allowlist generation).
 - The PR metrics script `scripts/collect-pr-metrics.ts` (token handling, GitHub API misuse).
 

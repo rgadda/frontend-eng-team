@@ -41,7 +41,7 @@ npm init -y && git init
 
 ## Plugin version bumps
 
-Any change inside `plugins/frontend-team/` **must** bump `plugins/frontend-team/.claude-plugin/plugin.json#version` and the matching entry in `.claude-plugin/marketplace.json`. The subagent and skill prompts form part of the cached prefix in every installed session; stale caches silently break behavior. Bump the version so teams re-pull.
+Any change to `agents/` or `skills/` **must** bump `.claude-plugin/plugin.json#version` and the matching entry in `.claude-plugin/marketplace.json`. The subagent and skill prompts form part of the cached prefix in every installed session; stale caches silently break behavior. Bump the version so teams re-pull.
 
 Semver guidance:
 
@@ -70,8 +70,8 @@ Semver guidance:
 | `.agents/memory/append.sh` | Append helper — treat as versioned, bump plugin/repo when changed |
 | `.claude/commands/*.md` | Claude Code slash-command wiring (only when delegation pattern changes) |
 | `.claude-plugin/marketplace.json` | Bump plugin version entry whenever the plugin is updated |
-| `plugins/frontend-team/agents/*.md` | Subagent contracts — bump plugin version on any change |
-| `plugins/frontend-team/skills/**` | Skill bodies and triggers — bump plugin version on any change |
+| `agents/*.md` | Subagent contracts — bump plugin version on any change |
+| `skills/**` | Skill bodies and triggers — bump plugin version on any change |
 | `.github/copilot-instructions.md` | Copilot paste-workflow updates (only when role files change shape) |
 | `scripts/ft-bootstrap.sh` | Bootstrap logic — update when the file map changes |
 | `scripts/setup-global.md` | Global setup instructions — update when install commands change |

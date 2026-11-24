@@ -1,6 +1,6 @@
 # PM Clarify — Claude Code Command
 
-> **Backing skill:** `plugins/frontend-team/skills/pm-clarify/`
+> **Backing skill:** `skills/pm-clarify/`
 >
 > This command lets a developer or tester ask a clarifying question about the
 > current feature without pulling the human PM in. The skill answers from the

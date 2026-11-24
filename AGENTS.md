@@ -167,18 +167,22 @@ read `CLAUDE.md` for project constraints before producing code.
   review.md
   verify.md
 
-plugins/frontend-team/            ← Versioned subagents + skills
-  agents/
-    repo-explorer.md              (haiku)
-    frontend-reviewer.md          (sonnet)
-    test-runner.md                (haiku)
-    verifier.md                   (sonnet, 10-bucket checklist)
-    prod-readiness.md             (haiku, conditional)
-  skills/
-    component-conventions/
-    pr-prep/
-    pm-clarify/                   (new — main-context PRD Q&A)
-    loop-engineering/             (new — RCC pattern reference)
+agents/                           ← Versioned subagents (plugin)
+  repo-explorer.md                (haiku)
+  frontend-reviewer.md            (sonnet)
+  test-runner.md                  (haiku)
+  verifier.md                     (sonnet, 10-bucket checklist)
+  prod-readiness.md               (haiku, conditional)
+
+skills/                           ← Versioned skills (plugin + skills.sh)
+  component-conventions/
+  pr-prep/
+  pm-clarify/
+  loop-engineering/
+
+.claude-plugin/                   ← Plugin + marketplace manifests
+  plugin.json
+  marketplace.json
 
 .github/copilot-instructions.md   ← Copilot entry point (paste workflow for .agents/)
 

@@ -1,6 +1,6 @@
 # sample-app
 
-Minimal React 18 + TypeScript + Vite app used as the **fixture** that the Relay pipeline is tuned against. The role contracts in `.agents/roles/` and the skills in `plugins/frontend-team/skills/` reference this app's conventions (Axios client, feature-colocated modules, CSS Modules, Jest + RTL, etc.).
+Minimal React 18 + TypeScript + Vite app used as the **fixture** that the Relay pipeline is tuned against. The role contracts in `.agents/roles/` and the skills in `skills/` reference this app's conventions (Axios client, feature-colocated modules, CSS Modules, Jest + RTL, etc.).
 
 You don't need this app to use Relay in your own project — `ft-bootstrap` only copies `.agents/` and `.claude/commands/`. This folder exists so contributors to Relay itself have something concrete to exercise the pipeline against.
 

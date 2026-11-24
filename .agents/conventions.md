@@ -155,8 +155,8 @@ role/subagent files that contain the formula:
 - `.agents/roles/reviewer.md`
 - `.agents/roles/verifier.md`
 - `.agents/roles/prod-readiness.md`
-- `plugins/frontend-team/agents/verifier.md`
-- `plugins/frontend-team/agents/prod-readiness.md`
+- `agents/verifier.md`
+- `agents/prod-readiness.md`
 
 The pipeline orchestrator sums `tokens_in` and `tokens_out` across all JSONL
 records for the current branch in the PIPELINE COMPLETE / STALLED messages

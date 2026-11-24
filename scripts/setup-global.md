@@ -247,7 +247,7 @@ instead of clobbering a customized `AGENTS.md`.
 ## What you do NOT need to do
 
 - ❌ Hand-edit `~/.claude/settings.json` — Step 1's CLI commands do it for you
-- ❌ Copy `plugins/frontend-team/` into every repo — the plugin runs globally
+- ❌ Copy `agents/` or `skills/` into every repo — the plugin runs globally
 - ❌ Commit `.agents/memory/*.jsonl` — they're personal workspace, gitignored
 - ❌ Delete `branch-plan.md` and `branch-prd.md` manually after PR — they're
   gitignored and only meaningful mid-branch

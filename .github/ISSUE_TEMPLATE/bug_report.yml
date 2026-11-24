@@ -65,7 +65,7 @@ body:
     id: plugin-version
     attributes:
       label: Plugin version
-      description: From `plugins/frontend-team/.claude-plugin/plugin.json#version`.
+      description: From `.claude-plugin/plugin.json#version`.
     validations:
       required: false
   - type: textarea

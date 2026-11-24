@@ -63,13 +63,16 @@ orchestrator routes correctly and the cached prefix stays lean.
 
 ## Versioning
 
-- Plugin version is declared in `plugins/frontend-team/.claude-plugin/plugin.json`.
+- Plugin version is declared in `.claude-plugin/plugin.json`.
 - Bump the version on every change. Pin distributions with a git ref or SHA so
   teams upgrade deliberately.
-- Current: **0.2.0** — adds `prod-readiness` subagent, `pm-clarify` skill,
-  `loop-engineering` skill, 5 Security+SRE gates in the verifier, and a
-  post-0.2 consolidation that collapsed the verifier's 25 items into 10 buckets
-  (same coverage, FAIL expands sub-item detail).
+- Current: **0.3.0** — restructured so the whole repo is the plugin
+  (`.claude-plugin/{plugin,marketplace}.json` at root, `agents/` and `skills/`
+  at root). Enables skills.sh indexing of the four skills. 0.2.0 added
+  `prod-readiness` subagent, `pm-clarify` skill, `loop-engineering` skill,
+  5 Security+SRE gates in the verifier, and a post-0.2 consolidation that
+  collapsed the verifier's 25 items into 10 buckets (same coverage, FAIL
+  expands sub-item detail).
 
 ## Install
 
@@ -83,7 +86,7 @@ From any repo where you want the agents available:
 /plugin install frontend-team@frontend-team-marketplace
 ```
 
-To pin a version: `/plugin install frontend-team@frontend-team-marketplace@0.2.0`.
+To pin a version: `/plugin install frontend-team@frontend-team-marketplace@0.3.0`.
 
 This repo's `.claude/settings.json` declares the marketplace + enables the
 plugin, so cloning this repo auto-loads it without manual install.
@@ -102,8 +105,8 @@ cached prefix).
 ## Updating
 
 1. Edit agent/skill files.
-2. Bump `version` in `plugins/frontend-team/.claude-plugin/plugin.json` AND in
-   the matching entry in `.claude-plugin/marketplace.json`.
+2. Bump `version` in `.claude-plugin/plugin.json` AND in the matching entry in
+   `.claude-plugin/marketplace.json`.
 3. Commit and tag.
 4. Teams pull and re-run
    `/plugin install frontend-team@frontend-team-marketplace@<new-version>`.

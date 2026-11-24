@@ -56,8 +56,8 @@ Full setup + troubleshooting: [scripts/setup-global.md](scripts/setup-global.md)
 |---|---|
 | **Roles** (`.agents/roles/`) | PM · Architect · Implementer · Reviewer · Prod-Readiness · Verifier |
 | **Orchestrators** (`.agents/`) | `pipeline.md` (full) · `pipeline-lite.md` (small, non-sensitive changes) |
-| **Subagents** (`plugins/frontend-team/agents/`) | `repo-explorer` · `frontend-reviewer` · `test-runner` · `prod-readiness` · `verifier` |
-| **Skills** (`plugins/frontend-team/skills/`) | `component-conventions` · `pr-prep` · `pm-clarify` · `loop-engineering` |
+| **Subagents** (`agents/`) | `repo-explorer` · `frontend-reviewer` · `test-runner` · `prod-readiness` · `verifier` |
+| **Skills** (`skills/`) | `component-conventions` · `pr-prep` · `pm-clarify` · `loop-engineering` |
 | **Metrics** (`scripts/`) | `collect-pr-metrics.ts` — before/after PR velocity report · `claude-usage-report.py` — local Claude Code usage + leak-signal report |
 | **Sample app** (`examples/sample-app/`) | React 18 + TS + Vite fixture the pipeline is tuned against. See [its README](examples/sample-app/README.md). |
 

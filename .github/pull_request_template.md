@@ -12,8 +12,8 @@ One role change, one convention edit, or one doc update per PR.
 - [ ] Convention edit (`.agents/conventions.md`)
 - [ ] Role contract edit (`.agents/roles/*.md`)
 - [ ] Orchestrator change (`.agents/pipeline.md` / `.agents/pipeline-lite.md`)
-- [ ] New or edited subagent (`plugins/frontend-team/agents/*.md`)
-- [ ] New or edited skill (`plugins/frontend-team/skills/**`)
+- [ ] New or edited subagent (`agents/*.md`)
+- [ ] New or edited skill (`skills/**`)
 - [ ] Tooling (CI, bootstrap, metrics)
 - [ ] Documentation only
 
@@ -21,7 +21,7 @@ One role change, one convention edit, or one doc update per PR.
 
 - [ ] Ran `/pipeline <small task>` end-to-end with these changes; output was not degraded
 - [ ] `npm ci && npm run lint && npm run build` pass locally
-- [ ] If `plugins/frontend-team/**` was touched: bumped `plugin.json#version` and the entry in `.claude-plugin/marketplace.json`
+- [ ] If `agents/**` or `skills/**` was touched: bumped `.claude-plugin/plugin.json#version` and the entry in `.claude-plugin/marketplace.json`
 - [ ] If an output format changed: called out explicitly below (breaking change)
 - [ ] Docs updated if the file map, role list, or subagent set changed
 

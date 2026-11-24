@@ -8,7 +8,7 @@
 > Verifier checks cover normal changes; this role only fires when the risk
 > surface warrants a dedicated pass.
 > **Primary tool:** Claude Code invokes the `prod-readiness` subagent
-> (`plugins/frontend-team/agents/prod-readiness.md`) which follows this contract.
+> (`agents/prod-readiness.md`) which follows this contract.
 >
 > This is the canonical Production Readiness role definition. It combines
 > Security and SRE concerns into one focused pass to stay cost-conscious —

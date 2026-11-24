@@ -36,7 +36,7 @@ These are thin wrappers that delegate to `.agents/`. Don't duplicate role conten
 ## 5. Plugin manifest
 
 - `.claude-plugin/marketplace.json` — update the owner / repo URL to point at your fork if you want to publish your own marketplace.
-- `plugins/frontend-team/.claude-plugin/plugin.json` — bump `version` on any plugin change (subagent or skill). Cache invalidation depends on it.
+- `.claude-plugin/plugin.json` — bump `version` on any plugin change (subagent or skill). Cache invalidation depends on it.
 
 ## 6. Non-frontend stacks
 

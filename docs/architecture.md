@@ -8,7 +8,7 @@ Relay has three layers:
 
 1. **Role contracts** in `.agents/` — the tool-neutral source of truth. Each role is a Markdown file that defines identity, inputs, outputs, and the inner Refine-Critique-Converge (RCC) loop.
 2. **Tool entry points** in `.claude/commands/`, `.github/copilot-instructions.md`, and the root `AGENTS.md` — thin wrappers that activate a role in a specific AI tool.
-3. **Plugin assets** in `plugins/frontend-team/` — Claude Code subagents (forked contexts) and skills (main-context reminders), versioned and distributed via the `frontend-team-marketplace`.
+3. **Plugin assets** at the repo root — `agents/` (Claude Code subagents, forked contexts) and `skills/` (main-context reminders, also indexable by skills.sh). Versioned via `.claude-plugin/plugin.json` and distributed via the `frontend-team-marketplace`.
 
 The pipeline is deliberately **re-entrant from any layer**: you can invoke a single role (`/architect`), run the full pipeline (`/pipeline`), or let an AGENTS.md-aware tool route itself through the role files directly.
 
@@ -138,23 +138,22 @@ repo-root/
 │                                      auto-enables the frontend-team plugin.
 │
 ├── .claude-plugin/
-│   └── marketplace.json               Marketplace manifest (frontend-team-marketplace)
-│                                      that publishes the bundled plugin.
+│   ├── marketplace.json               Marketplace manifest (frontend-team-marketplace).
+│   │                                  Plugin source is "." — repo root is plugin root.
+│   └── plugin.json                    Plugin manifest (name, version).
 │
-├── plugins/
-│   └── frontend-team/                 Versioned plugin: subagents + skills.
-│       ├── .claude-plugin/plugin.json Plugin manifest (name, version).
-│       ├── agents/                    Subagents (forked-context helpers).
-│       │   ├── repo-explorer.md       Cheap haiku lookups: "where is X"
-│       │   ├── frontend-reviewer.md   Diff review, returns structured verdict
-│       │   ├── test-runner.md         Runs Jest + Playwright, summarized output
-│       │   ├── prod-readiness.md      On-demand Security + SRE deep pass (haiku)
-│       │   └── verifier.md            Final tsc/eslint/build gate + 10-bucket checklist
-│       └── skills/                    Skills (main-context convention reminders).
-│           ├── component-conventions/ React/TS/CSS/Axios/test playbook
-│           ├── pr-prep/               Pre-push diff hygiene + gates
-│           ├── pm-clarify/            Dev/tester PRD Q&A grounded in branch-prd.md
-│           └── loop-engineering/      Reference for the RCC self-critique pattern
+├── agents/                            Subagents (forked-context helpers).
+│   ├── repo-explorer.md               Cheap haiku lookups: "where is X"
+│   ├── frontend-reviewer.md           Diff review, returns structured verdict
+│   ├── test-runner.md                 Runs Jest + Playwright, summarized output
+│   ├── prod-readiness.md              On-demand Security + SRE deep pass (haiku)
+│   └── verifier.md                    Final tsc/eslint/build gate + 10-bucket checklist
+│
+├── skills/                            Skills — Claude Code + Agent Skills (skills.sh).
+│   ├── component-conventions/         React/TS/CSS/Axios/test playbook
+│   ├── pr-prep/                       Pre-push diff hygiene + gates
+│   ├── pm-clarify/                    Dev/tester PRD Q&A grounded in branch-prd.md
+│   └── loop-engineering/              Reference for the RCC self-critique pattern
 │
 ├── .github/
 │   ├── copilot-instructions.md        Copilot entry point. Auto-loaded by VS Code
