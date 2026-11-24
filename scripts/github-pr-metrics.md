@@ -235,7 +235,7 @@ Use fixture data — do not call the GitHub API in tests. Create a `lib/__fixtur
 
 ## What This Is For
 
-This script collects the raw data that feeds into `pr-tracking.md` and `metrics-collection.md`.
+This script collects the raw data that feeds into `docs/writing/pr-tracking.md` and `docs/writing/metrics-collection.md`.
 Instead of manually counting PRs and calculating medians from the GitHub UI, engineers run this
 script once a week and get a complete before/after comparison.
 

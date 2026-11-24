@@ -164,15 +164,16 @@ repo-root/
 │   ├── ISSUE_TEMPLATE/                Bug / feature templates.
 │   └── pull_request_template.md       PR checklist.
 │
-├── framework.md                       The multi-agent methodology document.
-├── metrics-collection.md              What metrics to collect and how.
-├── pr-tracking.md                     PR-level tracking templates.
-│
 ├── docs/
 │   ├── architecture.md                This file.
 │   ├── subagents.md                   Efficient subagent + skill usage.
 │   ├── adapting.md                    Adapting the template to your project.
-│   └── diagrams.md                    Canonical Mermaid source for every diagram.
+│   ├── diagrams.md                    Canonical Mermaid source for every diagram.
+│   └── writing/                       Long-form background and methodology.
+│       ├── framework.md               The multi-agent methodology document.
+│       ├── metrics-collection.md      What metrics to collect and how.
+│       ├── pr-tracking.md             PR-level tracking templates.
+│       └── dzone-multi-agent-frontend-pipeline.md  Published article.
 │
 ├── scripts/
 │   ├── ft-bootstrap.sh                Per-repo installer for the pipeline scaffolding.
@@ -180,6 +181,12 @@ repo-root/
 │   ├── collect-pr-metrics.ts          Self-contained CLI for measuring PR velocity.
 │   └── README.md                      Portable usage guide for the metrics script.
 │
+├── examples/
+│   └── sample-app/                    React 18 + TS + Vite fixture the pipeline is
+│                                      tuned against. Contributors run pipeline tasks
+│                                      here. Not required by ft-bootstrap.
+│
+├── package.json                       Root deps — metrics script only (tsx, octokit).
 ├── CLAUDE.md · AGENTS.md
 ├── CONTRIBUTING.md · SECURITY.md
 └── LICENSE · README.md
@@ -189,4 +196,4 @@ repo-root/
 
 - [Using subagents efficiently](subagents.md)
 - [Adapting the template](adapting.md)
-- [Framework methodology (deep paper)](../framework.md)
+- [Framework methodology (deep paper)](writing/framework.md)
