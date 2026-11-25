@@ -1,7 +1,7 @@
 {
   "name": "frontend-team",
   "description": "Frontend team agents and skills: read-only repo-explorer + frontend-reviewer + prod-readiness, sonnet test-runner and 25-item verifier (with Bash), and main-context skills for component conventions, PR prep, PM clarify, and loop-engineering RCC pattern. CLAUDE.md conventions inlined into every subagent.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "Rajiv Gadda",
     "email": "rajivgadda@gmail.com"

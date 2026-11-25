@@ -68,7 +68,7 @@ The subagents and the full pipeline require Claude Code.
 |---|---|
 | **Roles** (`.agents/roles/`) | PM · Architect · Implementer · Reviewer · Prod-Readiness · Verifier |
 | **Orchestrators** (`.agents/`) | `pipeline.md` (full) · `pipeline-lite.md` (small, non-sensitive changes) |
-| **Subagents** (`agents/`) | `repo-explorer` · `frontend-reviewer` · `test-runner` · `prod-readiness` · `verifier` |
+| **Subagents** (`agents/`) | `repo-explorer` · `frontend-reviewer` · `spec-reviewer` · `test-runner` · `prod-readiness` · `verifier` |
 | **Skills** (`skills/`) | `component-conventions` · `pr-prep` · `pm-clarify` · `loop-engineering` |
 | **Metrics** (`scripts/`) | `collect-pr-metrics.ts` — before/after PR velocity report · `claude-usage-report.py` — local Claude Code usage + leak-signal report |
 | **Sample app** (`examples/sample-app/`) | React 18 + TS + Vite fixture the pipeline is tuned against. See [its README](examples/sample-app/README.md). |
@@ -123,6 +123,7 @@ Stack-specific conventions live in [`.agents/conventions.md`](.agents/convention
 - [Adapting the template](docs/adapting.md) — making it fit your project
 - [Diagrams](docs/diagrams.md) — canonical Mermaid source for every diagram
 - [Copilot paste workflow](.github/copilot-instructions.md) — phase-by-phase VS Code recipe
+- [Spec review automation](docs/spec-review-automation.md) — GitHub Action to run `spec-reviewer` on every PR
 - [PR metrics script](scripts/README.md) — portable CLI for before/after measurement
 - [Claude Code usage report](scripts/claude-usage-report.md) — local token spend, cache-hit ratio, and workflow leak signals
 - [Framework methodology](docs/writing/framework.md) — the deeper paper behind the pipeline
