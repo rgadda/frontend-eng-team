@@ -12,7 +12,7 @@
       "name": "frontend-team",
       "source": "./",
       "description": "Frontend team agents (repo-explorer, frontend-reviewer, test-runner, prod-readiness, verifier) and skills (component-conventions, pr-prep, pm-clarify, loop-engineering). React 18 + TypeScript + Vite + Axios + CSS Modules + Jest/RTL + Playwright conventions inlined. Verifier now 25 items with baked-in Security + SRE gates; prod-readiness fires on plans tagged sensitive:*.",
-      "version": "0.3.0"
+      "version": "0.4.0"
     }
   ]
 }

@@ -1,0 +1,143 @@
+# Spec Review — GitHub Actions workflow template
+#
+# Reference workflow for running the Relay `spec-reviewer` subagent on PRs.
+# Copy this file to `.github/workflows/spec-review.yml` in your target repo and
+# wire up the two prerequisites below.
+#
+# PREREQUISITES
+# -------------
+#   1. Repo secret ANTHROPIC_API_KEY (Settings → Secrets → Actions).
+#   2. Spec source. Pick ONE of the two paths in the "Prepare spec" step below
+#      and delete the other. Default path reads a `## Acceptance Criteria`
+#      section from the PR body (zero-dependency). The commented-out path
+#      fetches a Jira ticket by ID parsed from the branch name.
+#
+# COST CONTROL
+# ------------
+#   This workflow runs only on PRs labeled `spec-review-please`. Apply the
+#   label to opt a PR in. Remove the label gate once you trust the signal.
+#
+# OUTPUT
+# ------
+#   The claude-code-action posts its result as a PR comment automatically.
+#   The subagent returns a per-AC PASS/FAIL/PARTIAL matrix with evidence.
+
+name: Spec Review
+
+on:
+  pull_request:
+    types: [labeled, synchronize]
+
+jobs:
+  spec-review:
+    # Only run when the opt-in label is present.
+    if: contains(github.event.pull_request.labels.*.name, 'spec-review-please')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need full history for `git diff main...HEAD`
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Prepare spec (default — extract from PR body)
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          mkdir -p .agents/memory
+          # Extract the "## Acceptance Criteria" section (case-insensitive) from the PR body.
+          # If the section is missing, fail loudly — spec-reviewer has nothing to evaluate.
+          printf '%s\n' "$PR_BODY" | awk '
+            BEGIN { in_section = 0 }
+            tolower($0) ~ /^## *acceptance criteria/ { in_section = 1; print; next }
+            in_section && /^## / { in_section = 0 }
+            in_section { print }
+          ' > /tmp/acs.md
+          if [ ! -s /tmp/acs.md ]; then
+            echo "::error::PR body has no '## Acceptance Criteria' section. Add one or switch to the Jira spec path in this workflow."
+            exit 1
+          fi
+          # Write a minimal branch-plan.md the subagent can read.
+          {
+            echo "---"
+            echo "branch: $BRANCH"
+            echo "source: pr-body"
+            echo "pr: $PR_NUMBER"
+            echo "---"
+            echo
+            cat /tmp/acs.md
+          } > branch-plan.md
+
+      # ---- Alternative spec source: Jira ticket (uncomment + delete the step above) ----
+      # Requires repo secret JIRA_URL (e.g. https://acme.atlassian.net),
+      # JIRA_EMAIL, and JIRA_TOKEN (API token).
+      # - name: Prepare spec (from Jira)
+      #   env:
+      #     JIRA_URL: ${{ secrets.JIRA_URL }}
+      #     JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      #     JIRA_TOKEN: ${{ secrets.JIRA_TOKEN }}
+      #     BRANCH: ${{ github.head_ref }}
+      #   run: |
+      #     mkdir -p .agents/memory
+      #     # Parse ticket ID from branch name, e.g. feature/FE-1234-add-button → FE-1234.
+      #     TICKET=$(printf '%s' "$BRANCH" | grep -oE '[A-Z]+-[0-9]+' | head -1)
+      #     if [ -z "$TICKET" ]; then
+      #       echo "::error::No Jira ticket ID found in branch name '$BRANCH'. Expected pattern like ABC-123."
+      #       exit 1
+      #     fi
+      #     curl -sS -u "$JIRA_EMAIL:$JIRA_TOKEN" \
+      #       "$JIRA_URL/rest/api/3/issue/$TICKET?fields=summary,description" \
+      #       | jq -r '"# " + .fields.summary + "\n\n" + (.fields.description | tostring)' \
+      #       > branch-plan.md
+
+      - name: Capture diff
+        run: |
+          mkdir -p .agents/memory
+          BASE="${{ github.event.pull_request.base.ref }}"
+          git fetch origin "$BASE" --depth=0
+          git diff "origin/$BASE"...HEAD > .agents/memory/current-diff.patch
+          if [ ! -s .agents/memory/current-diff.patch ]; then
+            echo "::warning::Diff is empty — nothing to review."
+          fi
+
+      - name: Run tests and capture output
+        # `|| true` keeps the workflow alive on test failure — the subagent
+        # reads the log to distinguish failures from the absence of tests.
+        run: |
+          mkdir -p .agents/memory
+          npm test > .agents/memory/test-output.log 2>&1 || true
+
+      - name: Spec review via Claude Code
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          plugin_marketplaces: |
+            https://github.com/rgadda/frontend-eng-team.git
+          plugins: |
+            frontend-team@frontend-team-marketplace
+          # Main-session model stays cheap; the subagent's frontmatter pins
+          # itself to opus for the actual judgment pass.
+          claude_args: |
+            --model claude-sonnet-4-6
+            --max-turns 8
+          prompt: |
+            Invoke the `spec-reviewer` subagent (from the frontend-team plugin)
+            with this task: "Review the current branch's diff against the
+            acceptance criteria in branch-plan.md at the project root. The diff
+            is at .agents/memory/current-diff.patch. Test output is at
+            .agents/memory/test-output.log. Return the AC matrix exactly as
+            specified in your output format."
+
+            Return the subagent's output verbatim. Do not add commentary,
+            do not re-rank its verdicts, do not run any other tool.
